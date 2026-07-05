@@ -9,10 +9,12 @@ import { Card } from '../components/ui/Card';
 import { PaymentHistory } from '../components/booking/PaymentHistory';
 import { AddPaymentDialog } from '../components/booking/AddPaymentDialog';
 import { ConfirmDialog } from '../components/booking/ConfirmDialog';
+import { FinancialSummary } from '../components/booking/FinancialSummary';
 import { LoadingState } from '../components/ui/LoadingState';
 import { ErrorState } from '../components/ui/ErrorState';
 import { toErrorMessage } from '../lib/api';
 import { formatCurrency, formatDateLong, formatPhone, normalizePhoneForLink } from '../lib/format';
+import { DECORATION_TYPE_LABELS } from '../lib/types';
 
 export default function BookingDetails() {
   const { id } = useParams<{ id: string }>();
@@ -28,6 +30,12 @@ export default function BookingDetails() {
   if (!booking) return <ErrorState message="Booking not found" onRetry={() => navigate('/')} />;
 
   const waLink = `https://wa.me/${normalizePhoneForLink(booking.phone)}`;
+  const kitchenAmount = booking.kitchen_required ? booking.kitchen_amount : 0;
+  const decorationAmount = booking.decoration_type === 'in_house' ? booking.decoration_amount : 0;
+  const royaltyFee = booking.decoration_type === 'outside' ? booking.royalty_fee : 0;
+  const advanceReceived = payments
+    .filter((p) => p.payment_type === 'advance')
+    .reduce((sum, p) => sum + p.amount, 0);
 
   return (
     <div className="mx-auto max-w-2xl px-4 pb-28 pt-5">
@@ -103,24 +111,64 @@ export default function BookingDetails() {
 
       <Card className="mt-4 p-4">
         <h2 className="mb-3 text-xs font-semibold uppercase tracking-wide text-ink-soft dark:text-ink-dark-soft">
-          Payment Summary
+          Kitchen
         </h2>
-        <div className="grid grid-cols-3 gap-2 text-center">
+        <div className="grid grid-cols-2 gap-3 text-sm">
           <div>
-            <p className="text-[11px] uppercase tracking-wide text-ink-soft/70 dark:text-ink-dark-soft/70">Budget</p>
-            <p className="font-display font-semibold text-ink dark:text-ink-dark">{formatCurrency(booking.budget)}</p>
+            <p className="text-ink-soft dark:text-ink-dark-soft">Required</p>
+            <p className="font-semibold text-ink dark:text-ink-dark">{booking.kitchen_required ? 'Yes' : 'No'}</p>
           </div>
-          <div>
-            <p className="text-[11px] uppercase tracking-wide text-ink-soft/70 dark:text-ink-dark-soft/70">Collected</p>
-            <p className="font-display font-semibold text-maroon-500 dark:text-gold-300">{formatCurrency(booking.collected)}</p>
-          </div>
-          <div>
-            <p className="text-[11px] uppercase tracking-wide text-ink-soft/70 dark:text-ink-dark-soft/70">Pending</p>
-            <p className="font-display font-semibold text-maroon-600 dark:text-maroon-400">
-              {formatCurrency(Math.max(booking.pending, 0))}
-            </p>
-          </div>
+          {booking.kitchen_required && (
+            <div>
+              <p className="text-ink-soft dark:text-ink-dark-soft">Kitchen Amount</p>
+              <p className="font-semibold text-ink dark:text-ink-dark">{formatCurrency(booking.kitchen_amount)}</p>
+            </div>
+          )}
         </div>
+      </Card>
+
+      <Card className="mt-4 p-4">
+        <h2 className="mb-3 text-xs font-semibold uppercase tracking-wide text-ink-soft dark:text-ink-dark-soft">
+          Decoration
+        </h2>
+        <div className="grid grid-cols-2 gap-3 text-sm">
+          <div>
+            <p className="text-ink-soft dark:text-ink-dark-soft">Type</p>
+            <p className="font-semibold text-ink dark:text-ink-dark">{DECORATION_TYPE_LABELS[booking.decoration_type]}</p>
+          </div>
+          {booking.decoration_type === 'in_house' && (
+            <>
+              <div>
+                <p className="text-ink-soft dark:text-ink-dark-soft">Vendor Name</p>
+                <p className="font-semibold text-ink dark:text-ink-dark">{booking.decorator_vendor ?? '—'}</p>
+              </div>
+              <div>
+                <p className="text-ink-soft dark:text-ink-dark-soft">Decoration Amount</p>
+                <p className="font-semibold text-ink dark:text-ink-dark">{formatCurrency(booking.decoration_amount)}</p>
+              </div>
+            </>
+          )}
+          {booking.decoration_type === 'outside' && (
+            <div>
+              <p className="text-ink-soft dark:text-ink-dark-soft">Royalty Fee</p>
+              <p className="font-semibold text-ink dark:text-ink-dark">{formatCurrency(booking.royalty_fee)}</p>
+            </div>
+          )}
+        </div>
+      </Card>
+
+      <Card className="mt-4 p-4">
+        <h2 className="mb-3 text-xs font-semibold uppercase tracking-wide text-ink-soft dark:text-ink-dark-soft">
+          Financial Summary
+        </h2>
+        <FinancialSummary
+          hallAmount={booking.budget}
+          kitchenAmount={kitchenAmount}
+          decorationAmount={decorationAmount}
+          royaltyFee={royaltyFee}
+          advanceReceived={advanceReceived}
+          collected={booking.collected}
+        />
       </Card>
 
       <div className="mt-4 grid grid-cols-2 gap-3">

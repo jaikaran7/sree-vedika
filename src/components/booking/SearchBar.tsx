@@ -1,9 +1,10 @@
 interface SearchBarProps {
   value: string;
   onChange: (value: string) => void;
+  placeholder?: string;
 }
 
-export function SearchBar({ value, onChange }: SearchBarProps) {
+export function SearchBar({ value, onChange, placeholder = 'Search by name, phone or date…' }: SearchBarProps) {
   return (
     <div className="relative">
       <span className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-ink-soft/60">🔍</span>
@@ -11,7 +12,7 @@ export function SearchBar({ value, onChange }: SearchBarProps) {
         value={value}
         onChange={(e) => onChange(e.target.value)}
         type="search"
-        placeholder="Search by name, phone or date…"
+        placeholder={placeholder}
         className="h-12 w-full rounded-xl border border-line bg-white pl-11 pr-4 text-[15px] text-ink outline-none transition-colors focus:border-maroon-500 focus:ring-2 focus:ring-maroon-500/15 dark:border-line-dark dark:bg-surface-dark dark:text-ink-dark dark:focus:border-gold-400"
       />
     </div>

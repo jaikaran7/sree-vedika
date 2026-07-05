@@ -8,16 +8,31 @@ datasource db {
   directUrl = env("DIRECT_URL")
 }
 
+enum DecorationType {
+  in_house
+  outside
+  not_required
+
+  @@map("decoration_type")
+}
+
 model Booking {
-  id            String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  customer_name String
-  phone         String
-  booking_date  DateTime  @db.Date
-  booking_slot  String
-  budget        Decimal   @db.Decimal(12, 2)
-  status        String    @default("upcoming")
-  created_at    DateTime  @default(now()) @db.Timestamptz(6)
-  updated_at    DateTime  @default(now()) @updatedAt @db.Timestamptz(6)
+  id                  String         @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  customer_name       String
+  phone               String
+  booking_date        DateTime       @db.Date
+  booking_slot        String
+  budget              Decimal        @db.Decimal(12, 2)
+  kitchen_required    Boolean        @default(false)
+  kitchen_amount      Decimal        @default(0) @db.Decimal(12, 2)
+  decoration_type     DecorationType @default(not_required)
+  decorator_vendor    String?
+  decoration_amount   Decimal        @default(0) @db.Decimal(12, 2)
+  royalty_fee         Decimal        @default(0) @db.Decimal(12, 2)
+  total_booking_value Decimal        @default(0) @db.Decimal(12, 2)
+  status              String         @default("upcoming")
+  created_at          DateTime       @default(now()) @db.Timestamptz(6)
+  updated_at          DateTime       @default(now()) @updatedAt @db.Timestamptz(6)
 
   payments   Payment[]
   invoices   Invoice[]
@@ -83,4 +98,52 @@ model QuotationCounter {
   last_number Int @default(0)
 
   @@map("quotation_counters")
+}
+
+model Inquiry {
+  id                  String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  customer_name       String
+  phone               String
+  alternate_phone     String?
+  event_type          String
+  expected_event_date DateTime  @db.Date
+  preferred_slot      String    @default("flexible")
+  expected_guests     Int?
+  source              String
+  expected_budget     Decimal?  @db.Decimal(12, 2)
+  priority            String    @default("medium")
+  status              String    @default("new_inquiry")
+  notes               String?
+  next_followup_date  DateTime? @db.Date
+  booking_id          String?   @db.Uuid
+  created_at          DateTime  @default(now()) @db.Timestamptz(6)
+  updated_at          DateTime  @default(now()) @updatedAt @db.Timestamptz(6)
+
+  followups FollowUp[]
+
+  @@index([phone])
+  @@index([status])
+  @@index([source])
+  @@index([priority])
+  @@index([expected_event_date])
+  @@index([next_followup_date])
+  @@index([booking_id])
+  @@map("inquiries")
+}
+
+model FollowUp {
+  id                 String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  inquiry_id         String    @db.Uuid
+  remarks            String
+  followup_date      DateTime  @default(dbgenerated("CURRENT_DATE")) @db.Date
+  followup_time      DateTime  @default(dbgenerated("CURRENT_TIME")) @db.Time(6)
+  next_followup_date DateTime? @db.Date
+  status             String
+  created_at         DateTime  @default(now()) @db.Timestamptz(6)
+
+  inquiry Inquiry @relation(fields: [inquiry_id], references: [id], onDelete: Cascade)
+
+  @@index([inquiry_id])
+  @@index([followup_date])
+  @@map("followups")
 }

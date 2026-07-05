@@ -70,7 +70,11 @@ export function QuotationTemplate({
             {[
               ['Booking Date', formatDate(booking.booking_date)],
               ['Booking Slot', slotLabel],
-              ['Total Budget', formatCurrency(booking.budget)],
+              ['Hall Booking Amount', formatCurrency(booking.budget)],
+              ['Kitchen Amount', formatCurrency(booking.kitchen_required ? booking.kitchen_amount : 0)],
+              ['Decoration Amount', formatCurrency(booking.decoration_type === 'in_house' ? booking.decoration_amount : 0)],
+              ['Royalty Fee', formatCurrency(booking.decoration_type === 'outside' ? booking.royalty_fee : 0)],
+              ['Total Booking Value', formatCurrency(booking.total_booking_value)],
               ['Advance Received', formatCurrency(booking.collected)],
               ['Pending Amount', formatCurrency(Math.max(booking.pending, 0))],
             ].map(([label, value], i) => (

@@ -30,8 +30,8 @@ export function BookingCard({ booking }: { booking: BookingWithTotals }) {
 
       <div className="mt-3 grid grid-cols-3 gap-2 border-t border-line pt-3 text-center dark:border-line-dark">
         <div>
-          <p className="text-[11px] uppercase tracking-wide text-ink-soft/70 dark:text-ink-dark-soft/70">Budget</p>
-          <p className="text-sm font-semibold text-ink dark:text-ink-dark">{formatCurrency(booking.budget)}</p>
+          <p className="text-[11px] uppercase tracking-wide text-ink-soft/70 dark:text-ink-dark-soft/70">Total</p>
+          <p className="text-sm font-semibold text-ink dark:text-ink-dark">{formatCurrency(booking.total_booking_value)}</p>
         </div>
         <div>
           <p className="text-[11px] uppercase tracking-wide text-ink-soft/70 dark:text-ink-dark-soft/70">Collected</p>

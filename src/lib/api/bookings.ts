@@ -1,6 +1,12 @@
 import { getSupabase } from '../supabase';
+import { calcTotalBookingValue, getEffectiveTotalBookingValue, calcPending } from '../bookingTotals';
 import { isUniqueViolation } from './errors';
-import type { Booking, BookingSlot, BookingWithTotals } from '../types';
+import type { Booking, BookingSlot, BookingWithTotals, DecorationType } from '../types';
+
+function withTotals(booking: Booking, collected: number): BookingWithTotals {
+  const total = getEffectiveTotalBookingValue(booking);
+  return { ...booking, collected, pending: calcPending(total, collected) };
+}
 
 export async function fetchAllBookingsWithTotals(): Promise<BookingWithTotals[]> {
   const [{ data: bookings, error: bookingsError }, { data: payments, error: paymentsError }] = await Promise.all([
@@ -18,7 +24,7 @@ export async function fetchAllBookingsWithTotals(): Promise<BookingWithTotals[]>
 
   return (bookings ?? []).map((b) => {
     const collected = collectedByBooking.get(b.id) ?? 0;
-    return { ...b, collected, pending: Number(b.budget) - collected };
+    return withTotals(b as Booking, collected);
   });
 }
 
@@ -33,7 +39,7 @@ export async function fetchBookingWithTotals(id: string): Promise<BookingWithTot
   if (!booking) return null;
 
   const collected = (payments ?? []).reduce((sum, p) => sum + Number(p.amount), 0);
-  return { ...booking, collected, pending: Number(booking.budget) - collected };
+  return withTotals(booking as Booking, collected);
 }
 
 export async function checkSlotAvailability(
@@ -61,6 +67,12 @@ export type CreateBookingInput = {
   booking_date: string;
   booking_slot: BookingSlot;
   budget: number;
+  kitchen_required: boolean;
+  kitchen_amount: number;
+  decoration_type: DecorationType;
+  decorator_vendor: string | null;
+  decoration_amount: number;
+  royalty_fee: number;
   advance: number;
 };
 
@@ -72,6 +84,8 @@ export async function createBooking(input: CreateBookingInput): Promise<CreateBo
   const available = await checkSlotAvailability(input.booking_date, input.booking_slot);
   if (!available) return { ok: false, reason: 'slot_taken' };
 
+  const total_booking_value = calcTotalBookingValue(input);
+
   const { data: booking, error: insertError } = await getSupabase()
     .from('bookings')
     .insert({
@@ -80,6 +94,13 @@ export async function createBooking(input: CreateBookingInput): Promise<CreateBo
       booking_date: input.booking_date,
       booking_slot: input.booking_slot,
       budget: input.budget,
+      kitchen_required: input.kitchen_required,
+      kitchen_amount: input.kitchen_required ? input.kitchen_amount : 0,
+      decoration_type: input.decoration_type,
+      decorator_vendor: input.decoration_type === 'in_house' ? input.decorator_vendor : null,
+      decoration_amount: input.decoration_type === 'in_house' ? input.decoration_amount : 0,
+      royalty_fee: input.decoration_type === 'outside' ? input.royalty_fee : 0,
+      total_booking_value,
     })
     .select()
     .single();
@@ -99,7 +120,7 @@ export async function createBooking(input: CreateBookingInput): Promise<CreateBo
     if (paymentError) return { ok: false, reason: 'error', message: paymentError.message };
   }
 
-  return { ok: true, booking };
+  return { ok: true, booking: booking as Booking };
 }
 
 export type UpdateBookingInput = {
@@ -108,6 +129,13 @@ export type UpdateBookingInput = {
   booking_date?: string;
   booking_slot?: BookingSlot;
   budget?: number;
+  kitchen_required?: boolean;
+  kitchen_amount?: number;
+  decoration_type?: DecorationType;
+  decorator_vendor?: string | null;
+  decoration_amount?: number;
+  royalty_fee?: number;
+  total_booking_value?: number;
 };
 
 export async function updateBooking(id: string, input: UpdateBookingInput): Promise<Booking> {
@@ -119,7 +147,7 @@ export async function updateBooking(id: string, input: UpdateBookingInput): Prom
   const { data, error } = await getSupabase().from('bookings').update(input).eq('id', id).select().single();
   if (error) throw error;
   if (!data) throw new Error('Booking not found');
-  return data;
+  return data as Booking;
 }
 
 export async function cancelBooking(id: string): Promise<void> {

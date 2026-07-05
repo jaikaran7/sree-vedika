@@ -106,8 +106,30 @@ export function InvoiceTemplate({
           <table style={{ width: 300, borderCollapse: 'collapse' }}>
             <tbody>
               <tr>
-                <td style={{ padding: '8px 14px', fontSize: 13, color: c.inkSoft }}>Budget Amount</td>
+                <td style={{ padding: '8px 14px', fontSize: 13, color: c.inkSoft }}>Hall Booking Amount</td>
                 <td style={{ padding: '8px 14px', fontSize: 13, fontWeight: 700, textAlign: 'right' }}>{formatCurrency(booking.budget)}</td>
+              </tr>
+              {booking.kitchen_required && booking.kitchen_amount > 0 && (
+                <tr>
+                  <td style={{ padding: '8px 14px', fontSize: 13, color: c.inkSoft }}>Kitchen Amount</td>
+                  <td style={{ padding: '8px 14px', fontSize: 13, fontWeight: 700, textAlign: 'right' }}>{formatCurrency(booking.kitchen_amount)}</td>
+                </tr>
+              )}
+              {booking.decoration_type === 'in_house' && booking.decoration_amount > 0 && (
+                <tr>
+                  <td style={{ padding: '8px 14px', fontSize: 13, color: c.inkSoft }}>Decoration Amount</td>
+                  <td style={{ padding: '8px 14px', fontSize: 13, fontWeight: 700, textAlign: 'right' }}>{formatCurrency(booking.decoration_amount)}</td>
+                </tr>
+              )}
+              {booking.decoration_type === 'outside' && booking.royalty_fee > 0 && (
+                <tr>
+                  <td style={{ padding: '8px 14px', fontSize: 13, color: c.inkSoft }}>Royalty Fee</td>
+                  <td style={{ padding: '8px 14px', fontSize: 13, fontWeight: 700, textAlign: 'right' }}>{formatCurrency(booking.royalty_fee)}</td>
+                </tr>
+              )}
+              <tr>
+                <td style={{ padding: '8px 14px', fontSize: 13, color: c.inkSoft }}>Total Booking Value</td>
+                <td style={{ padding: '8px 14px', fontSize: 13, fontWeight: 700, textAlign: 'right' }}>{formatCurrency(booking.total_booking_value)}</td>
               </tr>
               <tr>
                 <td style={{ padding: '8px 14px', fontSize: 13, color: c.inkSoft }}>Total Received</td>

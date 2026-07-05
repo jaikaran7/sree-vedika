@@ -4,14 +4,22 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { bookingSchema, type BookingFormValues } from '../../lib/validators';
-import { toErrorMessage } from '../../lib/api';
+import { calcTotalBookingValue } from '../../lib/bookingTotals';
+import { linkInquiryToBooking, toErrorMessage } from '../../lib/api';
 import { useBookings } from '../../hooks/useBookings';
 import { TextInput, SelectInput } from '../ui/Field';
 import { Button } from '../ui/Button';
 import { ConfirmDialog } from './ConfirmDialog';
+import { FinancialSummary } from './FinancialSummary';
 import { formatCurrency, todayISO } from '../../lib/format';
+import type { DecorationType } from '../../lib/types';
 
-export function BookingForm() {
+type BookingFormProps = {
+  prefill?: Partial<BookingFormValues>;
+  fromInquiryId?: string;
+};
+
+export function BookingForm({ prefill, fromInquiryId }: BookingFormProps) {
   const navigate = useNavigate();
   const { createBooking } = useBookings();
   const [confirming, setConfirming] = useState<BookingFormValues | null>(null);
@@ -25,10 +33,27 @@ export function BookingForm() {
     formState: { errors },
   } = useForm<BookingFormValues>({
     resolver: zodResolver(bookingSchema),
-    defaultValues: { booking_date: todayISO(), booking_slot: 'morning', budget: 0, advance: 0 },
+    defaultValues: {
+      booking_date: todayISO(),
+      booking_slot: 'morning',
+      kitchen_required: 'no',
+      kitchen_amount: 0,
+      decoration_type: 'not_required',
+      decorator_vendor: '',
+      decoration_amount: 0,
+      royalty_fee: 0,
+      budget: 0,
+      advance: 0,
+      ...prefill,
+    },
   });
 
+  const kitchenRequired = watch('kitchen_required');
+  const decorationType = watch('decoration_type');
   const budget = Number(watch('budget')) || 0;
+  const kitchenAmount = kitchenRequired === 'yes' ? Number(watch('kitchen_amount')) || 0 : 0;
+  const decorationAmount = decorationType === 'in_house' ? Number(watch('decoration_amount')) || 0 : 0;
+  const royaltyFee = decorationType === 'outside' ? Number(watch('royalty_fee')) || 0 : 0;
   const advance = Number(watch('advance')) || 0;
 
   const doSubmit = async (values: BookingFormValues) => {
@@ -41,11 +66,26 @@ export function BookingForm() {
         booking_date: values.booking_date,
         booking_slot: values.booking_slot,
         budget: Number(values.budget),
+        kitchen_required: values.kitchen_required === 'yes',
+        kitchen_amount: Number(values.kitchen_amount ?? 0),
+        decoration_type: values.decoration_type as DecorationType,
+        decorator_vendor: values.decorator_vendor?.trim() || null,
+        decoration_amount: Number(values.decoration_amount ?? 0),
+        royalty_fee: Number(values.royalty_fee ?? 0),
         advance: Number(values.advance ?? 0),
       });
 
       if (result.ok) {
-        toast.success('Booking created');
+        if (fromInquiryId) {
+          try {
+            await linkInquiryToBooking(fromInquiryId, result.booking.id);
+          } catch (err) {
+            toast.error(toErrorMessage(err, 'Booking saved but inquiry could not be linked'));
+            navigate(`/booking/${result.booking.id}`);
+            return;
+          }
+        }
+        toast.success(fromInquiryId ? 'Booking created and inquiry converted' : 'Booking created');
         navigate(`/booking/${result.booking.id}`);
         return;
       }
@@ -89,12 +129,61 @@ export function BookingForm() {
             <option value="morning">Morning</option>
             <option value="evening">Evening</option>
           </SelectInput>
+
+          <SelectInput label="Kitchen Required?" error={errors.kitchen_required?.message} {...register('kitchen_required')}>
+            <option value="no">No</option>
+            <option value="yes">Yes</option>
+          </SelectInput>
+          {kitchenRequired === 'yes' && (
+            <TextInput
+              label="Kitchen Amount (₹)"
+              type="number"
+              inputMode="decimal"
+              min={0}
+              error={errors.kitchen_amount?.message}
+              {...register('kitchen_amount')}
+            />
+          )}
+
+          <SelectInput label="Decoration Type" error={errors.decoration_type?.message} {...register('decoration_type')}>
+            <option value="not_required">Not Required</option>
+            <option value="in_house">In-house</option>
+            <option value="outside">Outside</option>
+          </SelectInput>
+          {decorationType === 'outside' && (
+            <TextInput
+              label="Royalty Fee (₹)"
+              type="number"
+              inputMode="decimal"
+              min={0}
+              error={errors.royalty_fee?.message}
+              {...register('royalty_fee')}
+            />
+          )}
+          {decorationType === 'in_house' && (
+            <>
+              <TextInput
+                label="Decorator Vendor Name"
+                placeholder="e.g. Royal Decorators"
+                error={errors.decorator_vendor?.message}
+                {...register('decorator_vendor')}
+              />
+              <TextInput
+                label="Decoration Amount (₹)"
+                type="number"
+                inputMode="decimal"
+                min={0}
+                error={errors.decoration_amount?.message}
+                {...register('decoration_amount')}
+              />
+            </>
+          )}
         </section>
 
         <section className="space-y-4">
           <h2 className="font-display text-base font-semibold text-ink dark:text-ink-dark">Financial Details</h2>
           <TextInput
-            label="Budget Finalized"
+            label="Hall Booking Amount (₹)"
             type="number"
             inputMode="decimal"
             min={0}
@@ -102,16 +191,21 @@ export function BookingForm() {
             {...register('budget')}
           />
           <TextInput
-            label="Advance Received"
+            label="Advance Received (₹)"
             type="number"
             inputMode="decimal"
             min={0}
             error={errors.advance?.message}
             {...register('advance')}
           />
-          <div className="rounded-xl bg-gold-300/15 px-4 py-3 text-sm font-semibold text-gold-600 dark:bg-gold-400/10 dark:text-gold-300">
-            Pending Amount: {formatCurrency(Math.max(budget - advance, 0))}
-          </div>
+          <FinancialSummary
+            hallAmount={budget}
+            kitchenAmount={kitchenAmount}
+            decorationAmount={decorationAmount}
+            royaltyFee={royaltyFee}
+            advanceReceived={advance}
+            collected={advance}
+          />
         </section>
 
         <Button type="submit" size="lg" className="w-full" disabled={submitting}>
@@ -124,7 +218,17 @@ export function BookingForm() {
         title="Confirm Booking"
         message={
           confirming
-            ? `Save booking for ${confirming.customer_name} on ${confirming.booking_date} (${confirming.booking_slot})? Budget ${formatCurrency(Number(confirming.budget))}, advance ${formatCurrency(Number(confirming.advance ?? 0))}.`
+            ? (() => {
+                const total = calcTotalBookingValue({
+                  budget: Number(confirming.budget),
+                  kitchen_required: confirming.kitchen_required === 'yes',
+                  kitchen_amount: Number(confirming.kitchen_amount ?? 0),
+                  decoration_type: confirming.decoration_type as DecorationType,
+                  decoration_amount: Number(confirming.decoration_amount ?? 0),
+                  royalty_fee: Number(confirming.royalty_fee ?? 0),
+                });
+                return `Save booking for ${confirming.customer_name} on ${confirming.booking_date} (${confirming.booking_slot})? Total ${formatCurrency(total)}, advance ${formatCurrency(Number(confirming.advance ?? 0))}.`;
+              })()
             : ''
         }
         confirmLabel="Save Booking"

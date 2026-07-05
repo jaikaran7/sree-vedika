@@ -2,7 +2,9 @@ import { BrowserRouter, Route, Routes, useLocation } from 'react-router-dom';
 import { Toaster } from 'sonner';
 import Dashboard from './pages/Dashboard';
 import NewBooking from './pages/NewBooking';
+import NewInquiry from './pages/NewInquiry';
 import BookingDetails from './pages/BookingDetails';
+import InquiryDetails from './pages/InquiryDetails';
 import CalendarPage from './pages/CalendarPage';
 import { BottomNav } from './components/ui/BottomNav';
 import { Fab } from './components/ui/Fab';
@@ -22,7 +24,9 @@ function Chrome() {
       <Routes>
         <Route path="/" element={<Dashboard />} />
         <Route path="/new" element={<NewBooking />} />
+        <Route path="/inquiry/new" element={<NewInquiry />} />
         <Route path="/booking/:id" element={<BookingDetails />} />
+        <Route path="/inquiry/:id" element={<InquiryDetails />} />
         <Route path="/calendar" element={<CalendarPage />} />
       </Routes>
       {showFab && <Fab />}

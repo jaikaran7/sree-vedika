@@ -1,8 +1,17 @@
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { BookingForm } from '../components/booking/BookingForm';
+import type { BookingFormValues } from '../lib/validators';
+
+type BookingLocationState = {
+  fromInquiryId?: string;
+  prefill?: Partial<BookingFormValues>;
+};
 
 export default function NewBooking() {
   const navigate = useNavigate();
+  const location = useLocation();
+  const state = (location.state as BookingLocationState | null) ?? {};
+
   return (
     <div className="mx-auto max-w-2xl px-4 pb-28 pt-5">
       <header className="mb-5 flex items-center gap-3">
@@ -13,9 +22,11 @@ export default function NewBooking() {
         >
           ←
         </button>
-        <h1 className="font-display text-2xl font-semibold text-ink dark:text-ink-dark">New Booking</h1>
+        <h1 className="font-display text-2xl font-semibold text-ink dark:text-ink-dark">
+          {state.fromInquiryId ? 'Convert to Booking' : 'New Booking'}
+        </h1>
       </header>
-      <BookingForm />
+      <BookingForm prefill={state.prefill} fromInquiryId={state.fromInquiryId} />
     </div>
   );
 }
