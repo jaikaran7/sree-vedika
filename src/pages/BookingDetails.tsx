@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useCallback, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { toast } from 'sonner';
 import { useBooking } from '../hooks/useBooking';
@@ -12,9 +12,16 @@ import { ConfirmDialog } from '../components/booking/ConfirmDialog';
 import { FinancialSummary } from '../components/booking/FinancialSummary';
 import { LoadingState } from '../components/ui/LoadingState';
 import { ErrorState } from '../components/ui/ErrorState';
+import { DocumentPreviewModal } from '../components/documents/DocumentPreviewModal';
+import { QuotationTemplate } from '../components/documents/QuotationTemplate';
+import { InvoiceTemplate } from '../components/documents/InvoiceTemplate';
+import { getOrCreateInvoiceNumber } from '../lib/api/invoices';
+import { getOrCreateQuotation } from '../lib/api/quotations';
 import { toErrorMessage } from '../lib/api';
 import { formatCurrency, formatDateLong, formatPhone, normalizePhoneForLink } from '../lib/format';
 import { DECORATION_TYPE_LABELS } from '../lib/types';
+
+type DocumentPreview = 'quotation' | 'invoice';
 
 export default function BookingDetails() {
   const { id } = useParams<{ id: string }>();
@@ -23,7 +30,57 @@ export default function BookingDetails() {
   const { payments, loading: paymentsLoading, error: paymentsError, addPayment, editPayment } = usePayments(id);
   const [addingPayment, setAddingPayment] = useState(false);
   const [confirmingCancel, setConfirmingCancel] = useState(false);
-  const [generating, setGenerating] = useState<'quotation' | 'invoice' | null>(null);
+  const [preview, setPreview] = useState<DocumentPreview | null>(null);
+  const [previewLoading, setPreviewLoading] = useState(false);
+  const [previewError, setPreviewError] = useState<string | null>(null);
+  const [quotationMeta, setQuotationMeta] = useState<{ quotationNumber: string; validUntil: string } | null>(null);
+  const [invoiceNumber, setInvoiceNumber] = useState<string | null>(null);
+
+  const loadQuotationPreview = useCallback(async () => {
+    if (!booking) return;
+    setPreviewLoading(true);
+    setPreviewError(null);
+    try {
+      const data = await getOrCreateQuotation(booking.id);
+      setQuotationMeta(data);
+    } catch (err) {
+      setPreviewError(toErrorMessage(err, 'Could not load quotation'));
+    } finally {
+      setPreviewLoading(false);
+    }
+  }, [booking]);
+
+  const loadInvoicePreview = useCallback(async () => {
+    if (!booking) return;
+    setPreviewLoading(true);
+    setPreviewError(null);
+    try {
+      const number = await getOrCreateInvoiceNumber(booking.id);
+      setInvoiceNumber(number);
+    } catch (err) {
+      setPreviewError(toErrorMessage(err, 'Could not load invoice'));
+    } finally {
+      setPreviewLoading(false);
+    }
+  }, [booking]);
+
+  const openQuotationPreview = () => {
+    setPreview('quotation');
+    setQuotationMeta(null);
+    void loadQuotationPreview();
+  };
+
+  const openInvoicePreview = () => {
+    setPreview('invoice');
+    setInvoiceNumber(null);
+    void loadInvoicePreview();
+  };
+
+  const closePreview = () => {
+    setPreview(null);
+    setPreviewLoading(false);
+    setPreviewError(null);
+  };
 
   if (loading) return <LoadingState message="Loading booking…" />;
   if (error) return <ErrorState message={error} onRetry={refetch} />;
@@ -172,41 +229,11 @@ export default function BookingDetails() {
       </Card>
 
       <div className="mt-4 grid grid-cols-2 gap-3">
-        <Button
-          variant="secondary"
-          disabled={generating !== null}
-          onClick={async () => {
-            setGenerating('quotation');
-            try {
-              const { downloadQuotation } = await import('../components/documents/generatePdf');
-              await downloadQuotation(booking);
-              toast.success('Quotation downloaded');
-            } catch (err) {
-              toast.error(toErrorMessage(err, 'Could not generate quotation'));
-            } finally {
-              setGenerating(null);
-            }
-          }}
-        >
-          {generating === 'quotation' ? 'Generating…' : 'Generate Quotation'}
+        <Button variant="secondary" onClick={openQuotationPreview}>
+          View Quotation
         </Button>
-        <Button
-          variant="secondary"
-          disabled={generating !== null}
-          onClick={async () => {
-            setGenerating('invoice');
-            try {
-              const { downloadInvoice } = await import('../components/documents/generatePdf');
-              await downloadInvoice(booking, payments);
-              toast.success('Invoice downloaded');
-            } catch (err) {
-              toast.error(toErrorMessage(err, 'Could not generate invoice'));
-            } finally {
-              setGenerating(null);
-            }
-          }}
-        >
-          {generating === 'invoice' ? 'Generating…' : 'Generate Invoice'}
+        <Button variant="secondary" onClick={openInvoicePreview}>
+          View Invoice
         </Button>
       </div>
 
@@ -278,6 +305,44 @@ export default function BookingDetails() {
         }}
         onCancel={() => setConfirmingCancel(false)}
       />
+
+      <DocumentPreviewModal
+        open={preview === 'quotation'}
+        onClose={closePreview}
+        title="Quotation"
+        docType="quotation"
+        customerName={booking.customer_name}
+        phone={booking.phone}
+        filename={quotationMeta ? `Quotation-${quotationMeta.quotationNumber}.pdf` : 'Quotation.pdf'}
+        loading={previewLoading}
+        error={previewError}
+        onRetry={loadQuotationPreview}
+      >
+        {quotationMeta && (
+          <QuotationTemplate
+            booking={booking}
+            quotationNumber={quotationMeta.quotationNumber}
+            validUntil={quotationMeta.validUntil}
+          />
+        )}
+      </DocumentPreviewModal>
+
+      <DocumentPreviewModal
+        open={preview === 'invoice'}
+        onClose={closePreview}
+        title="Invoice"
+        docType="invoice"
+        customerName={booking.customer_name}
+        phone={booking.phone}
+        filename={invoiceNumber ? `Invoice-${invoiceNumber}.pdf` : 'Invoice.pdf'}
+        loading={previewLoading}
+        error={previewError}
+        onRetry={loadInvoicePreview}
+      >
+        {invoiceNumber && (
+          <InvoiceTemplate booking={booking} payments={payments} invoiceNumber={invoiceNumber} />
+        )}
+      </DocumentPreviewModal>
     </div>
   );
 }

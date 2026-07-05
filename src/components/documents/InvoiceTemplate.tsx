@@ -145,6 +145,16 @@ export function InvoiceTemplate({
           </table>
         </div>
 
+        <div style={{ marginBottom: 32 }}>
+          <div style={{ fontSize: 13, fontWeight: 700, color: c.maroon, marginBottom: 10 }}>Terms &amp; Conditions</div>
+          <ul style={{ margin: 0, paddingLeft: 18, fontSize: 12, color: c.inkSoft, lineHeight: 1.9 }}>
+            <li>All payments are subject to realization and recorded against the booking reference above.</li>
+            <li>The balance amount, if any, is payable on or before the day of the event.</li>
+            <li>This invoice is issued for the services and booking details mentioned herein.</li>
+            <li>Any additional services requested will be billed separately.</li>
+          </ul>
+        </div>
+
         <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
           <div style={{ width: 220, borderTop: `1px solid ${c.ink}`, paddingTop: 8, fontSize: 12, color: c.inkSoft, textAlign: 'right' }}>
             Authorized Signature

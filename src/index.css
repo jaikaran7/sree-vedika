@@ -93,3 +93,34 @@ html.dark .bg-hall {
 * {
   -webkit-tap-highlight-color: transparent;
 }
+
+/* Document preview — print only the A4 document, hide app chrome */
+@media print {
+  body.printing-document * {
+    visibility: hidden;
+  }
+
+  body.printing-document .document-print-area,
+  body.printing-document .document-print-area * {
+    visibility: visible;
+  }
+
+  body.printing-document .document-print-area {
+    position: fixed;
+    left: 0;
+    top: 0;
+    width: 210mm;
+    transform: none !important;
+    margin: 0 !important;
+    box-shadow: none !important;
+  }
+
+  body.printing-document .document-preview-chrome {
+    display: none !important;
+  }
+
+  @page {
+    size: A4 portrait;
+    margin: 0;
+  }
+}

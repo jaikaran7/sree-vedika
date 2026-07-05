@@ -1,13 +1,13 @@
 import { createRoot } from 'react-dom/client';
 import { createElement, type ReactElement } from 'react';
-import html2canvas from 'html2canvas';
-import jsPDF from 'jspdf';
 import { QuotationTemplate } from './QuotationTemplate';
 import { InvoiceTemplate } from './InvoiceTemplate';
 import { getOrCreateInvoiceNumber } from '../../lib/api/invoices';
 import { getOrCreateQuotation } from '../../lib/api/quotations';
+import { captureElementToPdf, downloadPdf } from './documentActions';
 import type { BookingWithTotals, Payment } from '../../lib/types';
 
+/** Renders a document off-screen and captures it as PDF (legacy direct-download path). */
 async function renderToPdf(node: ReactElement, filename: string) {
   const container = document.createElement('div');
   container.style.position = 'fixed';
@@ -24,26 +24,8 @@ async function renderToPdf(node: ReactElement, filename: string) {
 
   try {
     const target = container.firstElementChild as HTMLElement;
-    const canvas = await html2canvas(target, { scale: 2, useCORS: true, backgroundColor: '#ffffff' });
-    const imgData = canvas.toDataURL('image/jpeg', 0.95);
-
-    const pdf = new jsPDF({ unit: 'mm', format: 'a4', orientation: 'portrait' });
-    const pageWidth = pdf.internal.pageSize.getWidth();
-    const pageHeight = (canvas.height * pageWidth) / canvas.width;
-
-    let heightLeft = pageHeight;
-    let position = 0;
-    pdf.addImage(imgData, 'JPEG', 0, position, pageWidth, pageHeight);
-    heightLeft -= pdf.internal.pageSize.getHeight();
-
-    while (heightLeft > 0) {
-      position = heightLeft - pageHeight;
-      pdf.addPage();
-      pdf.addImage(imgData, 'JPEG', 0, position, pageWidth, pageHeight);
-      heightLeft -= pdf.internal.pageSize.getHeight();
-    }
-
-    pdf.save(filename);
+    const pdf = await captureElementToPdf(target, filename);
+    downloadPdf(pdf);
   } finally {
     root.unmount();
     document.body.removeChild(container);
@@ -53,10 +35,7 @@ async function renderToPdf(node: ReactElement, filename: string) {
 export async function downloadQuotation(booking: BookingWithTotals) {
   const { quotationNumber, validUntil } = await getOrCreateQuotation(booking.id);
   const filename = `Quotation-${quotationNumber}.pdf`;
-  await renderToPdf(
-    createElement(QuotationTemplate, { booking, quotationNumber, validUntil }),
-    filename,
-  );
+  await renderToPdf(createElement(QuotationTemplate, { booking, quotationNumber, validUntil }), filename);
 }
 
 export async function downloadInvoice(booking: BookingWithTotals, payments: Payment[]) {
