@@ -8,7 +8,7 @@ import { BottomNav } from './components/ui/BottomNav';
 import { Fab } from './components/ui/Fab';
 import { ThemeToggle } from './components/ui/ThemeToggle';
 import { SupabaseSetupScreen } from './components/SupabaseSetupScreen';
-import { isSupabaseConfigured } from './lib/supabase';
+import { getSupabaseConfigError, isSupabaseConfigured } from './lib/supabase';
 
 function Chrome() {
   const location = useLocation();
@@ -36,7 +36,7 @@ function App() {
     return (
       <>
         <div className="bg-hall min-h-screen">
-          <SupabaseSetupScreen />
+          <SupabaseSetupScreen message={getSupabaseConfigError()} />
         </div>
         <Toaster position="top-center" richColors closeButton />
       </>
