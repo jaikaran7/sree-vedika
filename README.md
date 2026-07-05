@@ -1,32 +1,93 @@
-# React + TypeScript + Vite
+# Sree Vedika Convention Hall
 
-This template provides a minimal setup to get React working in Vite with HMR and some Oxlint rules.
+Mobile-first booking and payment manager for Sree Vedika Convention Hall. Built with React, Vite, Tailwind CSS, and Supabase.
 
-Currently, two official plugins are available:
+## Features
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+- Dashboard with booking stats and search
+- Calendar view with day-by-day bookings
+- Create bookings with slot availability checks
+- Payment history with add/edit
+- PDF quotation and invoice generation (numbers persisted in Supabase)
+- PWA installable on mobile
 
-## React Compiler
+## Setup
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+### 1. Install dependencies
 
-## Expanding the Oxlint configuration
-
-If you are developing a production application, we recommend enabling type-aware lint rules by installing `oxlint-tsgolint` and editing `.oxlintrc.json`:
-
-```json
-{
-  "$schema": "./node_modules/oxlint/configuration_schema.json",
-  "plugins": ["react", "typescript", "oxc"],
-  "options": {
-    "typeAware": true
-  },
-  "rules": {
-    "react/rules-of-hooks": "error",
-    "react/only-export-components": ["warn", { "allowConstantExport": true }]
-  }
-}
+```bash
+npm install
 ```
 
-See the [Oxlint rules documentation](https://oxc.rs/docs/guide/usage/linter/rules) for the full list of rules and categories.
+### 2. Configure Supabase environment variables
+
+Copy `.env.example` to `.env.local` and fill in your project values from [Supabase Dashboard](https://supabase.com/dashboard) → **Project Settings** → **API**:
+
+```env
+VITE_SUPABASE_URL=https://your-project.supabase.co
+VITE_SUPABASE_ANON_KEY=your-anon-public-key
+```
+
+### 3. Run database migrations
+
+In your Supabase project, open **SQL Editor** → **New query**, then run **one** of:
+
+**Option A — single file (easiest):** paste the full contents of `supabase/schema.sql` and click **Run**.
+
+**Option B — step by step:** run each file in `supabase/migrations/` in numeric order:
+
+| File | Creates |
+|------|---------|
+| `20250705120000_enable_extensions.sql` | `pgcrypto` extension |
+| `20250705120001_create_bookings.sql` | `bookings` table, indexes, `updated_at` trigger |
+| `20250705120002_create_payments.sql` | `payments` table, `booking_totals` view |
+| `20250705120003_create_invoices.sql` | `invoices`, `invoice_counters`, `next_invoice_number()` |
+| `20250705120004_create_quotations.sql` | `quotations`, `quotation_counters`, `next_quotation_number()` |
+| `20250705120005_enable_rls.sql` | Row Level Security policies |
+
+### 4. Start the dev server
+
+```bash
+npm run dev
+```
+
+Open the local URL shown in the terminal. Use the **Network** URL to test on your phone (same Wi‑Fi).
+
+## Database schema
+
+| Table | Purpose |
+|-------|---------|
+| `bookings` | Customer bookings with date, slot, budget, status |
+| `payments` | Payment history linked to bookings |
+| `invoices` | Issued invoice numbers (one per booking) |
+| `quotations` | Issued quotation numbers with validity date |
+
+All tables have primary keys, foreign keys, indexes, timestamps, and check constraints. RLS is enabled with permissive anon policies (personal-use app with no login screen).
+
+## Project structure
+
+```
+src/
+  lib/
+    api/          # Supabase CRUD operations (bookings, payments, invoices, quotations)
+    supabase.ts   # Supabase client
+  hooks/          # React hooks wrapping the API layer
+  pages/          # Dashboard, Calendar, Booking details, New booking
+  components/     # UI, forms, PDF templates
+supabase/
+  migrations/     # Ordered SQL migration files
+  schema.sql      # Full schema rollup for SQL Editor
+```
+
+## Scripts
+
+| Command | Description |
+|---------|-------------|
+| `npm run dev` | Start development server |
+| `npm run build` | Production build |
+| `npm run preview` | Preview production build |
+| `npm run lint` | Run Oxlint |
+
+## Security note
+
+This app uses the public anon key with open RLS policies because there is no authentication layer. Keep your Supabase URL and anon key private. Add Supabase Auth and tighten RLS policies before exposing the app publicly.

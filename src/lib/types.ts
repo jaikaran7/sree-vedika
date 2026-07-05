@@ -41,6 +41,14 @@ export interface Invoice {
   created_at: string;
 }
 
+export interface Quotation {
+  id: string;
+  booking_id: string;
+  quotation_number: string;
+  valid_until: string;
+  created_at: string;
+}
+
 export interface BookingWithTotals extends Booking {
   collected: number;
   pending: number;

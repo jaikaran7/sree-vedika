@@ -12,7 +12,15 @@ const c = {
   ivory: '#fbf6ee',
 };
 
-export function QuotationTemplate({ booking }: { booking: BookingWithTotals }) {
+export function QuotationTemplate({
+  booking,
+  quotationNumber,
+  validUntil,
+}: {
+  booking: BookingWithTotals;
+  quotationNumber: string;
+  validUntil: string;
+}) {
   const slotLabel = booking.booking_slot === 'morning' ? 'Morning' : 'Evening';
 
   return (
@@ -27,10 +35,18 @@ export function QuotationTemplate({ booking }: { booking: BookingWithTotals }) {
       }}
     >
       <div style={{ background: c.maroon, color: c.goldLight, padding: '36px 48px' }}>
-        <div style={{ fontSize: 11, letterSpacing: 3, textTransform: 'uppercase', color: c.gold }}>Quotation</div>
-        <div style={{ fontSize: 30, fontWeight: 700, marginTop: 6 }}>{HALL_INFO.name}</div>
-        <div style={{ fontSize: 12.5, marginTop: 8, color: '#e9d9b8', maxWidth: 520, lineHeight: 1.5 }}>
-          {HALL_INFO.address}
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+          <div>
+            <div style={{ fontSize: 11, letterSpacing: 3, textTransform: 'uppercase', color: c.gold }}>Quotation</div>
+            <div style={{ fontSize: 30, fontWeight: 700, marginTop: 6 }}>{HALL_INFO.name}</div>
+            <div style={{ fontSize: 12.5, marginTop: 8, color: '#e9d9b8', maxWidth: 520, lineHeight: 1.5 }}>
+              {HALL_INFO.address}
+            </div>
+          </div>
+          <div style={{ textAlign: 'right' }}>
+            <div style={{ fontSize: 10.5, textTransform: 'uppercase', letterSpacing: 1.5, color: c.gold }}>Quotation No.</div>
+            <div style={{ fontSize: 18, fontWeight: 700, marginTop: 4 }}>{quotationNumber}</div>
+          </div>
         </div>
       </div>
 
@@ -44,6 +60,8 @@ export function QuotationTemplate({ booking }: { booking: BookingWithTotals }) {
           <div style={{ textAlign: 'right' }}>
             <div style={{ fontSize: 10.5, textTransform: 'uppercase', letterSpacing: 1.5, color: c.inkSoft }}>Quotation Date</div>
             <div style={{ fontSize: 14, fontWeight: 600, marginTop: 4 }}>{formatDate(todayISO())}</div>
+            <div style={{ fontSize: 10.5, textTransform: 'uppercase', letterSpacing: 1.5, color: c.inkSoft, marginTop: 12 }}>Valid Until</div>
+            <div style={{ fontSize: 14, fontWeight: 600, marginTop: 4 }}>{formatDate(validUntil)}</div>
           </div>
         </div>
 

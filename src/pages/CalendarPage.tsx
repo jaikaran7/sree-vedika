@@ -2,6 +2,8 @@ import { useMemo, useState } from 'react';
 import { useBookings } from '../hooks/useBookings';
 import { MonthCalendar } from '../components/calendar/MonthCalendar';
 import { DayBookingsSheet } from '../components/calendar/DayBookingsSheet';
+import { LoadingState } from '../components/ui/LoadingState';
+import { ErrorState } from '../components/ui/ErrorState';
 import { toISODate } from '../lib/format';
 
 const MONTH_NAMES = [
@@ -10,7 +12,7 @@ const MONTH_NAMES = [
 ];
 
 export default function CalendarPage() {
-  const { bookings, loading } = useBookings();
+  const { bookings, loading, error, refetch } = useBookings();
   const now = new Date();
   const [year, setYear] = useState(now.getFullYear());
   const [month, setMonth] = useState(now.getMonth());
@@ -68,7 +70,9 @@ export default function CalendarPage() {
       </header>
 
       {loading ? (
-        <p className="py-10 text-center text-sm text-ink-soft dark:text-ink-dark-soft">Loading…</p>
+        <LoadingState />
+      ) : error ? (
+        <ErrorState message={error} onRetry={refetch} />
       ) : (
         <>
           <MonthCalendar

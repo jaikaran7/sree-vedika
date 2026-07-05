@@ -1,5 +1,10 @@
 import { useCallback, useEffect, useState } from 'react';
-import { supabase } from '../lib/supabase';
+import {
+  createPayment as createPaymentApi,
+  fetchPaymentsByBooking,
+  toErrorMessage,
+  updatePayment as updatePaymentApi,
+} from '../lib/api';
 import type { Payment, PaymentType } from '../lib/types';
 
 export function usePayments(bookingId: string | undefined) {
@@ -8,19 +13,16 @@ export function usePayments(bookingId: string | undefined) {
   const [error, setError] = useState<string | null>(null);
 
   const refetch = useCallback(async () => {
-    if (!bookingId) return;
+    if (!bookingId) {
+      setLoading(false);
+      return;
+    }
     setError(null);
     try {
-      const { data, error: fetchError } = await supabase
-        .from('payments')
-        .select('*')
-        .eq('booking_id', bookingId)
-        .order('payment_date', { ascending: false })
-        .order('created_at', { ascending: false });
-      if (fetchError) throw fetchError;
-      setPayments(data ?? []);
+      const data = await fetchPaymentsByBooking(bookingId);
+      setPayments(data);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to load payments');
+      setError(toErrorMessage(err, 'Failed to load payments'));
     } finally {
       setLoading(false);
     }
@@ -33,13 +35,7 @@ export function usePayments(bookingId: string | undefined) {
   const addPayment = useCallback(
     async (input: { amount: number; payment_type: PaymentType; notes?: string }) => {
       if (!bookingId) return;
-      const { error: insertError } = await supabase.from('payments').insert({
-        booking_id: bookingId,
-        amount: input.amount,
-        payment_type: input.payment_type,
-        notes: input.notes || null,
-      });
-      if (insertError) throw insertError;
+      await createPaymentApi({ booking_id: bookingId, ...input });
       await refetch();
     },
     [bookingId, refetch],
@@ -47,11 +43,7 @@ export function usePayments(bookingId: string | undefined) {
 
   const editPayment = useCallback(
     async (paymentId: string, input: { amount: number; payment_type: PaymentType; notes?: string }) => {
-      const { error: updateError } = await supabase
-        .from('payments')
-        .update({ amount: input.amount, payment_type: input.payment_type, notes: input.notes || null })
-        .eq('id', paymentId);
-      if (updateError) throw updateError;
+      await updatePaymentApi(paymentId, input);
       await refetch();
     },
     [refetch],

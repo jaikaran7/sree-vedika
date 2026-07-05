@@ -7,6 +7,8 @@ import CalendarPage from './pages/CalendarPage';
 import { BottomNav } from './components/ui/BottomNav';
 import { Fab } from './components/ui/Fab';
 import { ThemeToggle } from './components/ui/ThemeToggle';
+import { SupabaseSetupScreen } from './components/SupabaseSetupScreen';
+import { isSupabaseConfigured } from './lib/supabase';
 
 function Chrome() {
   const location = useLocation();
@@ -30,6 +32,17 @@ function Chrome() {
 }
 
 function App() {
+  if (!isSupabaseConfigured) {
+    return (
+      <>
+        <div className="bg-hall min-h-screen">
+          <SupabaseSetupScreen />
+        </div>
+        <Toaster position="top-center" richColors closeButton />
+      </>
+    );
+  }
+
   return (
     <BrowserRouter>
       <div className="bg-hall min-h-screen">

@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
-import { supabase } from '../lib/supabase';
+import { cancelBooking as cancelBookingApi, fetchBookingWithTotals, toErrorMessage } from '../lib/api';
 import { getBookingStatus } from '../lib/bookingStatus';
 import type { Booking, BookingWithTotals } from '../lib/types';
 
@@ -9,26 +9,22 @@ export function useBooking(id: string | undefined) {
   const [error, setError] = useState<string | null>(null);
 
   const refetch = useCallback(async () => {
-    if (!id) return;
+    if (!id) {
+      setLoading(false);
+      return;
+    }
+    setLoading(true);
     setError(null);
     try {
-      const [{ data: b, error: bErr }, { data: payments, error: pErr }] = await Promise.all([
-        supabase.from('bookings').select('*').eq('id', id).single(),
-        supabase.from('payments').select('amount').eq('booking_id', id),
-      ]);
-      if (bErr) throw bErr;
-      if (pErr) throw pErr;
-
-      const collected = (payments ?? []).reduce((sum, p) => sum + Number(p.amount), 0);
-      const withStatus: BookingWithTotals = {
-        ...(b as Booking),
-        status: getBookingStatus(b as Booking) as Booking['status'],
-        collected,
-        pending: Number((b as Booking).budget) - collected,
-      };
-      setBooking(withStatus);
+      const data = await fetchBookingWithTotals(id);
+      if (!data) {
+        setBooking(null);
+        setError('Booking not found');
+        return;
+      }
+      setBooking({ ...data, status: getBookingStatus(data) as Booking['status'] });
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to load booking');
+      setError(toErrorMessage(err, 'Failed to load booking'));
     } finally {
       setLoading(false);
     }
@@ -40,8 +36,7 @@ export function useBooking(id: string | undefined) {
 
   const cancelBooking = useCallback(async () => {
     if (!id) return;
-    const { error: cancelError } = await supabase.from('bookings').update({ status: 'cancelled' }).eq('id', id);
-    if (cancelError) throw cancelError;
+    await cancelBookingApi(id);
     await refetch();
   }, [id, refetch]);
 

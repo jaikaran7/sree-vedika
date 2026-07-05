@@ -4,7 +4,8 @@ import html2canvas from 'html2canvas';
 import jsPDF from 'jspdf';
 import { QuotationTemplate } from './QuotationTemplate';
 import { InvoiceTemplate } from './InvoiceTemplate';
-import { getOrCreateInvoiceNumber } from '../../lib/invoices';
+import { getOrCreateInvoiceNumber } from '../../lib/api/invoices';
+import { getOrCreateQuotation } from '../../lib/api/quotations';
 import type { BookingWithTotals, Payment } from '../../lib/types';
 
 async function renderToPdf(node: ReactElement, filename: string) {
@@ -18,7 +19,6 @@ async function renderToPdf(node: ReactElement, filename: string) {
   const root = createRoot(container);
   root.render(node);
 
-  // Let the browser paint the off-screen node (and load the webfont) before capturing.
   await new Promise((resolve) => setTimeout(resolve, 150));
   if (document.fonts?.ready) await document.fonts.ready;
 
@@ -51,8 +51,12 @@ async function renderToPdf(node: ReactElement, filename: string) {
 }
 
 export async function downloadQuotation(booking: BookingWithTotals) {
-  const filename = `Quotation-${booking.customer_name.replace(/\s+/g, '-')}-${booking.booking_date}.pdf`;
-  await renderToPdf(createElement(QuotationTemplate, { booking }), filename);
+  const { quotationNumber, validUntil } = await getOrCreateQuotation(booking.id);
+  const filename = `Quotation-${quotationNumber}.pdf`;
+  await renderToPdf(
+    createElement(QuotationTemplate, { booking, quotationNumber, validUntil }),
+    filename,
+  );
 }
 
 export async function downloadInvoice(booking: BookingWithTotals, payments: Payment[]) {

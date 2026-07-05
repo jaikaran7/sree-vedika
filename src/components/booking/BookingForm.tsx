@@ -4,6 +4,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { bookingSchema, type BookingFormValues } from '../../lib/validators';
+import { toErrorMessage } from '../../lib/api';
 import { useBookings } from '../../hooks/useBookings';
 import { TextInput, SelectInput } from '../ui/Field';
 import { Button } from '../ui/Button';
@@ -55,6 +56,8 @@ export function BookingForm() {
       } else {
         toast.error(result.message ?? 'Could not save booking');
       }
+    } catch (err) {
+      toast.error(toErrorMessage(err, 'Could not save booking'));
     } finally {
       setSubmitting(false);
     }

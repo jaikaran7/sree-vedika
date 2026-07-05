@@ -5,6 +5,8 @@ import { StatCard } from '../components/ui/StatCard';
 import { SearchBar } from '../components/booking/SearchBar';
 import { BookingCard } from '../components/booking/BookingCard';
 import { PullToRefresh } from '../components/ui/PullToRefresh';
+import { LoadingState } from '../components/ui/LoadingState';
+import { ErrorState } from '../components/ui/ErrorState';
 import { formatCurrency } from '../lib/format';
 
 export default function Dashboard() {
@@ -50,8 +52,8 @@ export default function Dashboard() {
         </div>
 
         <div className="mt-5 space-y-3">
-          {loading && <p className="py-10 text-center text-sm text-ink-soft dark:text-ink-dark-soft">Loading bookings…</p>}
-          {error && <p className="py-10 text-center text-sm text-maroon-500">{error}</p>}
+          {loading && <LoadingState message="Loading bookings…" />}
+          {error && <ErrorState message={error} onRetry={refetch} />}
           {!loading && !error && filtered.length === 0 && (
             <p className="py-16 text-center text-sm text-ink-soft dark:text-ink-dark-soft">
               {query ? 'No bookings match your search.' : 'No bookings yet. Tap + to create one.'}

@@ -9,20 +9,23 @@ import { Card } from '../components/ui/Card';
 import { PaymentHistory } from '../components/booking/PaymentHistory';
 import { AddPaymentDialog } from '../components/booking/AddPaymentDialog';
 import { ConfirmDialog } from '../components/booking/ConfirmDialog';
+import { LoadingState } from '../components/ui/LoadingState';
+import { ErrorState } from '../components/ui/ErrorState';
+import { toErrorMessage } from '../lib/api';
 import { formatCurrency, formatDateLong, formatPhone, normalizePhoneForLink } from '../lib/format';
 
 export default function BookingDetails() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { booking, loading, refetch, cancelBooking } = useBooking(id);
-  const { payments, addPayment, editPayment } = usePayments(id);
+  const { booking, loading, error, refetch, cancelBooking } = useBooking(id);
+  const { payments, loading: paymentsLoading, error: paymentsError, addPayment, editPayment } = usePayments(id);
   const [addingPayment, setAddingPayment] = useState(false);
   const [confirmingCancel, setConfirmingCancel] = useState(false);
   const [generating, setGenerating] = useState<'quotation' | 'invoice' | null>(null);
 
-  if (loading || !booking) {
-    return <div className="px-4 py-10 text-center text-sm text-ink-soft dark:text-ink-dark-soft">Loading…</div>;
-  }
+  if (loading) return <LoadingState message="Loading booking…" />;
+  if (error) return <ErrorState message={error} onRetry={refetch} />;
+  if (!booking) return <ErrorState message="Booking not found" onRetry={() => navigate('/')} />;
 
   const waLink = `https://wa.me/${normalizePhoneForLink(booking.phone)}`;
 
@@ -129,8 +132,9 @@ export default function BookingDetails() {
             try {
               const { downloadQuotation } = await import('../components/documents/generatePdf');
               await downloadQuotation(booking);
-            } catch {
-              toast.error('Could not generate quotation');
+              toast.success('Quotation downloaded');
+            } catch (err) {
+              toast.error(toErrorMessage(err, 'Could not generate quotation'));
             } finally {
               setGenerating(null);
             }
@@ -146,8 +150,9 @@ export default function BookingDetails() {
             try {
               const { downloadInvoice } = await import('../components/documents/generatePdf');
               await downloadInvoice(booking, payments);
-            } catch {
-              toast.error('Could not generate invoice');
+              toast.success('Invoice downloaded');
+            } catch (err) {
+              toast.error(toErrorMessage(err, 'Could not generate invoice'));
             } finally {
               setGenerating(null);
             }
@@ -164,15 +169,25 @@ export default function BookingDetails() {
         </Button>
       </div>
       <div className="mt-3">
-        <PaymentHistory
-          payments={payments}
-          pending={booking.pending}
-          onEdit={async (paymentId, input) => {
-            await editPayment(paymentId, input);
-            await refetch();
-            toast.success('Payment updated');
-          }}
-        />
+        {paymentsLoading ? (
+          <LoadingState message="Loading payments…" />
+        ) : paymentsError ? (
+          <ErrorState message={paymentsError} />
+        ) : (
+          <PaymentHistory
+            payments={payments}
+            pending={booking.pending}
+            onEdit={async (paymentId, input) => {
+              try {
+                await editPayment(paymentId, input);
+                await refetch();
+                toast.success('Payment updated');
+              } catch (err) {
+                toast.error(toErrorMessage(err, 'Could not update payment'));
+              }
+            }}
+          />
+        )}
       </div>
 
       {booking.status !== 'cancelled' && (
@@ -188,9 +203,13 @@ export default function BookingDetails() {
         pending={booking.pending}
         onClose={() => setAddingPayment(false)}
         onSave={async (input) => {
-          await addPayment(input);
-          await refetch();
-          toast.success('Payment added');
+          try {
+            await addPayment(input);
+            await refetch();
+            toast.success('Payment added');
+          } catch (err) {
+            toast.error(toErrorMessage(err, 'Could not add payment'));
+          }
         }}
       />
 
@@ -201,9 +220,13 @@ export default function BookingDetails() {
         confirmLabel="Cancel Booking"
         destructive
         onConfirm={async () => {
-          await cancelBooking();
-          setConfirmingCancel(false);
-          toast.success('Booking cancelled');
+          try {
+            await cancelBooking();
+            setConfirmingCancel(false);
+            toast.success('Booking cancelled');
+          } catch (err) {
+            toast.error(toErrorMessage(err, 'Could not cancel booking'));
+          }
         }}
         onCancel={() => setConfirmingCancel(false)}
       />
