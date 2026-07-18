@@ -14,10 +14,18 @@ import {
   filterInquiries,
   type InquiryFilters,
 } from '../components/inquiry/InquiryFilters';
+import { PeriodSelect } from '../components/dashboard/PeriodSelect';
 import { PullToRefresh } from '../components/ui/PullToRefresh';
 import { LoadingState } from '../components/ui/LoadingState';
 import { ErrorState } from '../components/ui/ErrorState';
 import { formatCurrency } from '../lib/format';
+import {
+  availableYears,
+  currentMonthPeriod,
+  matchesPeriod,
+  periodLabel,
+  type DashboardPeriod,
+} from '../lib/dashboardPeriod';
 
 type DashboardSection = 'bookings' | 'inquiries';
 
@@ -53,35 +61,58 @@ export default function Dashboard() {
 
   const { bookings, loading: bookingsLoading, error: bookingsError, refetch: refetchBookings } = useBookings();
   const { inquiries, loading: inquiriesLoading, error: inquiriesError, refetch: refetchInquiries } = useInquiries();
-  const bookingStats = useDashboardStats(bookings);
-  const inquiryStats = useInquiryStats(inquiries);
 
+  const [period, setPeriod] = useState<DashboardPeriod>(currentMonthPeriod);
   const [bookingQuery, setBookingQuery] = useState('');
   const [inquiryQuery, setInquiryQuery] = useState('');
   const [inquiryFilters, setInquiryFilters] = useState<InquiryFilters>(emptyInquiryFilters);
   const [showFilters, setShowFilters] = useState(false);
 
+  const years = useMemo(
+    () =>
+      availableYears(
+        bookings.map((b) => b.booking_date),
+        inquiries.map((i) => i.created_at),
+      ),
+    [bookings, inquiries],
+  );
+
+  const periodBookings = useMemo(
+    () => bookings.filter((b) => matchesPeriod(b.booking_date, period)),
+    [bookings, period],
+  );
+
+  const periodInquiries = useMemo(
+    () => inquiries.filter((i) => matchesPeriod(i.created_at, period)),
+    [inquiries, period],
+  );
+
+  const bookingStats = useDashboardStats(periodBookings);
+  const inquiryStats = useInquiryStats(periodInquiries);
+
   const filteredBookings = useMemo(() => {
     const q = bookingQuery.trim().toLowerCase();
     const list = q
-      ? bookings.filter(
+      ? periodBookings.filter(
           (b) =>
             b.customer_name.toLowerCase().includes(q) ||
             b.phone.includes(q) ||
             b.booking_date.includes(q),
         )
-      : bookings;
+      : periodBookings;
     return [...list].sort((a, b) => (a.booking_date < b.booking_date ? 1 : -1));
-  }, [bookings, bookingQuery]);
+  }, [periodBookings, bookingQuery]);
 
   const filteredInquiries = useMemo(
-    () => filterInquiries(inquiries, inquiryQuery, inquiryFilters),
-    [inquiries, inquiryQuery, inquiryFilters],
+    () => filterInquiries(periodInquiries, inquiryQuery, inquiryFilters),
+    [periodInquiries, inquiryQuery, inquiryFilters],
   );
 
   const refetch = async () => {
     await Promise.all([refetchBookings(), refetchInquiries()]);
   };
+
+  const rangeHint = periodLabel(period);
 
   return (
     <PullToRefresh onRefresh={refetch}>
@@ -95,6 +126,14 @@ export default function Dashboard() {
           </h1>
           <div className="mt-3 h-px w-12 bg-gradient-to-r from-gold-400 to-maroon-500/40" />
         </header>
+
+        <div className="mb-4">
+          <PeriodSelect period={period} years={years} onChange={setPeriod} />
+          <p className="mt-2 text-xs text-ink-soft dark:text-ink-dark-soft">
+            Showing {rangeHint}
+            {section === 'bookings' ? ' · by booking date' : ' · by inquiry date'}
+          </p>
+        </div>
 
         <SectionTabs section={section} onChange={setSection} />
 
@@ -119,7 +158,11 @@ export default function Dashboard() {
               {bookingsError && <ErrorState message={bookingsError} onRetry={refetchBookings} />}
               {!bookingsLoading && !bookingsError && filteredBookings.length === 0 && (
                 <p className="py-16 text-center text-sm text-ink-soft dark:text-ink-dark-soft">
-                  {bookingQuery ? 'No bookings match your search.' : 'No bookings yet. Tap + to create one.'}
+                  {bookingQuery
+                    ? 'No bookings match your search.'
+                    : period.kind === 'all'
+                      ? 'No bookings yet. Tap + to create one.'
+                      : `No bookings in ${rangeHint}.`}
                 </p>
               )}
               {filteredBookings.map((b) => (
@@ -139,9 +182,6 @@ export default function Dashboard() {
             </div>
             <div className="mt-3 grid grid-cols-2 gap-3">
               <StatCard label="Conversion Rate" value={`${inquiryStats.conversionRate}%`} accent="gold" />
-              <StatCard label="This Month" value={inquiryStats.monthlyCount} />
-            </div>
-            <div className="mt-3">
               <StatCard label="Upcoming Follow-ups" value={inquiryStats.upcomingFollowUpCount} />
             </div>
 
@@ -168,7 +208,9 @@ export default function Dashboard() {
                 <p className="py-16 text-center text-sm text-ink-soft dark:text-ink-dark-soft">
                   {inquiryQuery || Object.values(inquiryFilters).some(Boolean)
                     ? 'No inquiries match your search or filters.'
-                    : 'No inquiries yet. Tap + to create one.'}
+                    : period.kind === 'all'
+                      ? 'No inquiries yet. Tap + to create one.'
+                      : `No inquiries in ${rangeHint}.`}
                 </p>
               )}
               {filteredInquiries.map((i) => (
