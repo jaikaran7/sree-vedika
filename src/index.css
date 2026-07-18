@@ -6,11 +6,11 @@
   --font-display: "Fraunces", "Georgia", serif;
   --font-sans: "Manrope", ui-sans-serif, system-ui, sans-serif;
 
-  --color-ivory: #fbf6ee;
+  --color-ivory: #faf5ed;
   --color-paper: #ffffff;
-  --color-ink: #241a12;
-  --color-ink-soft: #71624f;
-  --color-line: #e7dcc7;
+  --color-ink: #1e1410;
+  --color-ink-soft: #645548;
+  --color-line: #e5d8c4;
 
   --color-maroon-50: #fbeef0;
   --color-maroon-400: #a3384a;
@@ -28,6 +28,10 @@
   --color-bg-dark: #17110c;
   --color-surface-dark: #221a12;
   --color-line-dark: #3a2c1c;
+
+  --shadow-card: 0 1px 2px rgba(30, 20, 16, 0.04), 0 4px 14px rgba(30, 20, 16, 0.05);
+  --shadow-card-hover: 0 2px 4px rgba(30, 20, 16, 0.06), 0 10px 24px rgba(30, 20, 16, 0.07);
+  --shadow-nav: 0 -4px 20px rgba(30, 20, 16, 0.06);
 
   --animate-rise: rise 0.5s cubic-bezier(0.2, 0.8, 0.2, 1) both;
   --animate-pop: pop 0.25s cubic-bezier(0.2, 0.8, 0.2, 1) both;
@@ -67,6 +71,7 @@ body {
   background: var(--color-ivory);
   color: var(--color-ink);
   -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
   overscroll-behavior-y: contain;
 }
 html.dark body {
@@ -74,15 +79,20 @@ html.dark body {
   color: var(--color-ink-dark);
 }
 
-/* subtle brocade texture so the ivory background isn't a flat void */
+/* Warm layered background — ivory base with a soft gold wash and brocade dots */
 .bg-hall {
+  background-color: var(--color-ivory);
   background-image:
-    radial-gradient(circle at 1px 1px, rgba(179, 135, 58, 0.16) 1px, transparent 0);
-  background-size: 22px 22px;
+    radial-gradient(ellipse 130% 70% at 50% -15%, rgba(204, 164, 82, 0.1), transparent 55%),
+    radial-gradient(circle at 1px 1px, rgba(179, 135, 58, 0.11) 1px, transparent 0);
+  background-size: auto, 24px 24px;
 }
 html.dark .bg-hall {
+  background-color: var(--color-bg-dark);
   background-image:
-    radial-gradient(circle at 1px 1px, rgba(204, 164, 82, 0.1) 1px, transparent 0);
+    radial-gradient(ellipse 130% 70% at 50% -15%, rgba(204, 164, 82, 0.06), transparent 55%),
+    radial-gradient(circle at 1px 1px, rgba(204, 164, 82, 0.08) 1px, transparent 0);
+  background-size: auto, 24px 24px;
 }
 
 ::selection {
@@ -92,6 +102,39 @@ html.dark .bg-hall {
 
 * {
   -webkit-tap-highlight-color: transparent;
+}
+
+/* Shared surface styles for cards and list items */
+.surface-card {
+  border-radius: 1rem;
+  border: 1px solid var(--color-line);
+  background: var(--color-paper);
+  box-shadow: var(--shadow-card);
+}
+html.dark .surface-card {
+  border-color: var(--color-line-dark);
+  background: var(--color-surface-dark);
+  box-shadow: none;
+}
+
+.surface-interactive {
+  transition:
+    transform 0.15s ease,
+    box-shadow 0.2s ease,
+    border-color 0.2s ease;
+}
+.surface-interactive:active {
+  transform: scale(0.99);
+}
+@media (hover: hover) {
+  .surface-interactive:hover {
+    box-shadow: var(--shadow-card-hover);
+    border-color: color-mix(in srgb, var(--color-gold-400) 40%, var(--color-line));
+  }
+  html.dark .surface-interactive:hover {
+    border-color: color-mix(in srgb, var(--color-gold-400) 30%, var(--color-line-dark));
+    box-shadow: none;
+  }
 }
 
 /* Document preview — print only the A4 document, hide app chrome */

@@ -23,15 +23,15 @@ type DashboardSection = 'bookings' | 'inquiries';
 
 function SectionTabs({ section, onChange }: { section: DashboardSection; onChange: (s: DashboardSection) => void }) {
   return (
-    <div className="mb-5 flex rounded-xl border border-line bg-white p-1 dark:border-line-dark dark:bg-surface-dark">
+    <div className="mb-5 flex rounded-2xl border border-line bg-maroon-50/40 p-1 shadow-[var(--shadow-card)] dark:border-line-dark dark:bg-surface-dark">
       {(['bookings', 'inquiries'] as const).map((tab) => (
         <button
           key={tab}
           type="button"
           onClick={() => onChange(tab)}
-          className={`flex-1 rounded-lg py-2.5 text-sm font-semibold transition-colors ${
+          className={`flex-1 rounded-xl py-2.5 text-sm font-semibold transition-all ${
             section === tab
-              ? 'bg-maroon-500 text-gold-300 shadow-sm'
+              ? 'bg-white text-maroon-500 shadow-sm dark:bg-maroon-500 dark:text-gold-300'
               : 'text-ink-soft hover:text-ink dark:text-ink-dark-soft dark:hover:text-ink-dark'
           }`}
         >
@@ -86,11 +86,14 @@ export default function Dashboard() {
   return (
     <PullToRefresh onRefresh={refetch}>
       <div className="mx-auto max-w-2xl px-4 pb-28 pt-5">
-        <header className="mb-4">
-          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-gold-600 dark:text-gold-300">
+        <header className="mb-5">
+          <p className="text-xs font-semibold uppercase tracking-[0.22em] text-gold-600 dark:text-gold-300">
             Sree Vedika Convention Hall
           </p>
-          <h1 className="font-display text-2xl font-semibold text-ink dark:text-ink-dark">Dashboard</h1>
+          <h1 className="mt-1 font-display text-[1.75rem] font-semibold leading-tight text-ink dark:text-ink-dark">
+            Dashboard
+          </h1>
+          <div className="mt-3 h-px w-12 bg-gradient-to-r from-gold-400 to-maroon-500/40" />
         </header>
 
         <SectionTabs section={section} onChange={setSection} />

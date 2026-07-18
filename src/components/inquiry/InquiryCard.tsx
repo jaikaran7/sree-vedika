@@ -13,7 +13,7 @@ export function InquiryCard({ inquiry }: { inquiry: Inquiry }) {
   return (
     <button
       onClick={() => navigate(`/inquiry/${inquiry.id}`)}
-      className="w-full rounded-2xl border border-line bg-white p-4 text-left transition-transform active:scale-[0.99] dark:border-line-dark dark:bg-surface-dark"
+      className="surface-card surface-interactive w-full rounded-2xl p-4 text-left dark:border-line-dark dark:bg-surface-dark"
     >
       <div className="flex items-start justify-between gap-2">
         <div className="min-w-0">

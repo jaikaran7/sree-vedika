@@ -45,28 +45,29 @@ export default function CalendarPage() {
   return (
     <div className="mx-auto max-w-2xl px-4 pb-28 pt-5">
       <header className="mb-5">
-        <p className="text-xs font-semibold uppercase tracking-[0.2em] text-gold-600 dark:text-gold-300">Calendar</p>
+        <p className="text-xs font-semibold uppercase tracking-[0.22em] text-gold-600 dark:text-gold-300">Calendar</p>
         <div className="mt-1 flex items-center justify-between">
-          <h1 className="font-display text-2xl font-semibold text-ink dark:text-ink-dark">
+          <h1 className="font-display text-[1.75rem] font-semibold leading-tight text-ink dark:text-ink-dark">
             {MONTH_NAMES[month]} {year}
           </h1>
           <div className="flex gap-1">
             <button
               onClick={() => changeMonth(-1)}
-              className="flex h-10 w-10 items-center justify-center rounded-full text-ink-soft hover:bg-ink/5 dark:text-ink-dark-soft dark:hover:bg-white/10"
+              className="surface-card flex h-10 w-10 items-center justify-center rounded-xl text-lg text-ink-soft transition-colors hover:text-ink dark:border-line-dark dark:bg-surface-dark dark:text-ink-dark-soft dark:hover:text-ink-dark"
               aria-label="Previous month"
             >
               ‹
             </button>
             <button
               onClick={() => changeMonth(1)}
-              className="flex h-10 w-10 items-center justify-center rounded-full text-ink-soft hover:bg-ink/5 dark:text-ink-dark-soft dark:hover:bg-white/10"
+              className="surface-card flex h-10 w-10 items-center justify-center rounded-xl text-lg text-ink-soft transition-colors hover:text-ink dark:border-line-dark dark:bg-surface-dark dark:text-ink-dark-soft dark:hover:text-ink-dark"
               aria-label="Next month"
             >
               ›
             </button>
           </div>
         </div>
+        <div className="mt-3 h-px w-12 bg-gradient-to-r from-gold-400 to-maroon-500/40" />
       </header>
 
       {loading ? (

@@ -1,7 +1,7 @@
 import type { InputHTMLAttributes, ReactNode, SelectHTMLAttributes, TextareaHTMLAttributes } from 'react';
 
 const fieldBase =
-  'w-full h-12 rounded-xl border border-line bg-white px-4 text-[15px] text-ink placeholder:text-ink-soft/60 outline-none transition-colors focus:border-maroon-500 focus:ring-2 focus:ring-maroon-500/15 dark:bg-surface-dark dark:border-line-dark dark:text-ink-dark dark:focus:border-gold-400 dark:focus:ring-gold-400/15';
+  'surface-card w-full h-12 rounded-xl px-4 text-[15px] text-ink placeholder:text-ink-soft/70 outline-none transition-[border-color,box-shadow] focus:border-maroon-500 focus:ring-2 focus:ring-maroon-500/12 dark:bg-surface-dark dark:border-line-dark dark:text-ink-dark dark:focus:border-gold-400 dark:focus:ring-gold-400/15';
 
 interface WrapperProps {
   label: string;

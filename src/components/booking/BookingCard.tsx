@@ -10,7 +10,7 @@ export function BookingCard({ booking }: { booking: BookingWithTotals }) {
   return (
     <button
       onClick={() => navigate(`/booking/${booking.id}`)}
-      className="w-full rounded-2xl border border-line bg-white p-4 text-left transition-transform active:scale-[0.99] dark:border-line-dark dark:bg-surface-dark"
+      className="surface-card surface-interactive w-full rounded-2xl p-4 text-left dark:border-line-dark dark:bg-surface-dark"
     >
       <div className="flex items-start justify-between gap-2">
         <div>
@@ -38,8 +38,16 @@ export function BookingCard({ booking }: { booking: BookingWithTotals }) {
           <p className="text-sm font-semibold text-maroon-500 dark:text-gold-300">{formatCurrency(booking.collected)}</p>
         </div>
         <div>
-          <p className="text-[11px] uppercase tracking-wide text-ink-soft/70 dark:text-ink-dark-soft/70">Pending</p>
-          <p className={`text-sm font-semibold ${booking.pending > 0 ? 'text-maroon-600 dark:text-maroon-400' : 'text-ink-soft dark:text-ink-dark-soft'}`}>
+          <p className="text-[11px] uppercase tracking-wide text-ink-soft/70 dark:text-ink-dark-soft/70">
+            {booking.pending > 0 ? 'Pending' : 'Fully Paid'}
+          </p>
+          <p
+            className={`text-sm font-semibold ${
+              booking.pending > 0
+                ? 'text-red-600 dark:text-red-400'
+                : 'text-green-600 dark:text-green-400'
+            }`}
+          >
             {formatCurrency(Math.max(booking.pending, 0))}
           </p>
         </div>

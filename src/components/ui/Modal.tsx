@@ -25,8 +25,8 @@ export function Modal({ open, onClose, title, children }: ModalProps) {
 
   return createPortal(
     <div className="fixed inset-0 z-50 flex items-end justify-center sm:items-center">
-      <div className="absolute inset-0 bg-ink/40 backdrop-blur-[2px] animate-pop dark:bg-black/60" onClick={onClose} />
-      <div className="relative w-full max-w-md rounded-t-3xl border border-line bg-ivory p-6 shadow-2xl animate-rise sm:rounded-3xl dark:border-line-dark dark:bg-bg-dark">
+      <div className="absolute inset-0 bg-ink/30 backdrop-blur-[3px] animate-pop dark:bg-black/60" onClick={onClose} />
+      <div className="relative w-full max-w-md rounded-t-3xl border border-line bg-paper p-6 shadow-2xl animate-rise sm:rounded-3xl dark:border-line-dark dark:bg-bg-dark">
         <div className="mb-4 flex items-center justify-between">
           <h2 className="font-display text-xl font-semibold text-ink dark:text-ink-dark">{title}</h2>
           <button

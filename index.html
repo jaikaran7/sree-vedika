@@ -5,7 +5,7 @@
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <link rel="apple-touch-icon" href="/pwa-192x192.png" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=1" />
-    <meta name="theme-color" content="#0f172a" />
+    <meta name="theme-color" content="#faf5ed" />
     <meta name="description" content="Booking and payment management for Sree Vedika Convention Hall" />
     <title>Sree Vedika &middot; Booking Manager</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -17,7 +17,7 @@
     <script>
       (function () {
         var stored = localStorage.getItem('sv-theme');
-        var dark = stored ? stored === 'dark' : window.matchMedia('(prefers-color-scheme: dark)').matches;
+        var dark = stored === 'dark';
         document.documentElement.classList.toggle('dark', dark);
       })();
     </script>

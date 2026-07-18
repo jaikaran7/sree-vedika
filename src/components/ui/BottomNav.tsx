@@ -8,19 +8,19 @@ const items = [
 export function BottomNav() {
   return (
     <nav
-      className="fixed inset-x-0 bottom-0 z-30 border-t border-line bg-white/90 backdrop-blur-md pb-[env(safe-area-inset-bottom)] dark:border-line-dark dark:bg-surface-dark/90"
+      className="fixed inset-x-0 bottom-0 z-30 border-t border-line bg-white/95 pb-[env(safe-area-inset-bottom)] shadow-[var(--shadow-nav)] backdrop-blur-md dark:border-line-dark dark:bg-surface-dark/95"
     >
-      <div className="mx-auto flex max-w-2xl">
+      <div className="mx-auto flex max-w-2xl px-2">
         {items.map((item) => (
           <NavLink
             key={item.to}
             to={item.to}
             end={item.end}
             className={({ isActive }) =>
-              `flex flex-1 flex-col items-center gap-0.5 py-2.5 text-xs font-semibold transition-colors ${
+              `relative mx-1 my-1.5 flex flex-1 flex-col items-center gap-0.5 rounded-xl py-2 text-xs font-semibold transition-colors ${
                 isActive
-                  ? 'text-maroon-500 dark:text-gold-300'
-                  : 'text-ink-soft/70 dark:text-ink-dark-soft/70'
+                  ? 'bg-maroon-50 text-maroon-500 dark:bg-maroon-500/15 dark:text-gold-300'
+                  : 'text-ink-soft hover:text-ink dark:text-ink-dark-soft/80 dark:hover:text-ink-dark'
               }`
             }
           >

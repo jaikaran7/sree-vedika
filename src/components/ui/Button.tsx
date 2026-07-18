@@ -5,10 +5,10 @@ type Size = 'md' | 'lg' | 'icon';
 
 const variantClasses: Record<Variant, string> = {
   primary:
-    'bg-maroon-500 text-gold-300 hover:bg-maroon-600 active:bg-maroon-700 shadow-sm shadow-maroon-500/20 dark:bg-maroon-500 dark:hover:bg-maroon-400',
+    'bg-maroon-500 text-gold-300 hover:bg-maroon-600 active:bg-maroon-700 shadow-sm shadow-maroon-500/25 dark:bg-maroon-500 dark:hover:bg-maroon-400',
   secondary:
-    'bg-white text-ink border border-line hover:border-gold-500/60 hover:bg-gold-300/10 dark:bg-surface-dark dark:text-ink-dark dark:border-line-dark',
-  ghost: 'bg-transparent text-ink-soft hover:bg-ink/5 dark:text-ink-dark-soft dark:hover:bg-white/5',
+    'surface-card bg-white text-ink hover:border-gold-500/50 hover:bg-gold-300/8 dark:bg-surface-dark dark:text-ink-dark dark:border-line-dark',
+  ghost: 'bg-transparent text-ink-soft hover:bg-maroon-50 hover:text-ink dark:text-ink-dark-soft dark:hover:bg-white/5',
   danger: 'bg-maroon-600 text-gold-300 hover:bg-maroon-700 shadow-sm shadow-maroon-600/25',
 };
 

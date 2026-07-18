@@ -13,7 +13,7 @@ export function SearchBar({ value, onChange, placeholder = 'Search by name, phon
         onChange={(e) => onChange(e.target.value)}
         type="search"
         placeholder={placeholder}
-        className="h-12 w-full rounded-xl border border-line bg-white pl-11 pr-4 text-[15px] text-ink outline-none transition-colors focus:border-maroon-500 focus:ring-2 focus:ring-maroon-500/15 dark:border-line-dark dark:bg-surface-dark dark:text-ink-dark dark:focus:border-gold-400"
+        className="surface-card h-12 w-full rounded-xl pl-11 pr-4 text-[15px] text-ink outline-none transition-[border-color,box-shadow] focus:border-maroon-500 focus:ring-2 focus:ring-maroon-500/12 dark:border-line-dark dark:bg-surface-dark dark:text-ink-dark dark:focus:border-gold-400 dark:focus:ring-gold-400/15"
       />
     </div>
   );

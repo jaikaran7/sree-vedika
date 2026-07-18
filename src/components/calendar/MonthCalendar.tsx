@@ -23,8 +23,8 @@ export function MonthCalendar({ year, month, bookingsByDate, selectedDate, onSel
   ];
 
   return (
-    <div>
-      <div className="grid grid-cols-7 gap-1 text-center text-[11px] font-semibold uppercase text-ink-soft/60 dark:text-ink-dark-soft/60">
+    <div className="surface-card rounded-2xl p-4 dark:border-line-dark dark:bg-surface-dark">
+      <div className="grid grid-cols-7 gap-1 text-center text-[11px] font-semibold uppercase text-ink-soft dark:text-ink-dark-soft/70">
         {WEEKDAYS.map((d, i) => (
           <div key={i}>{d}</div>
         ))}
@@ -45,10 +45,10 @@ export function MonthCalendar({ year, month, bookingsByDate, selectedDate, onSel
               onClick={() => onSelectDate(date)}
               className={`relative flex aspect-square flex-col items-center justify-center rounded-xl text-sm transition-colors ${
                 isSelected
-                  ? 'bg-maroon-500 text-gold-300 font-semibold'
+                  ? 'bg-maroon-500 text-gold-300 font-semibold shadow-sm shadow-maroon-500/25'
                   : isToday
-                    ? 'bg-gold-300/25 text-ink font-semibold dark:bg-gold-400/15 dark:text-ink-dark'
-                    : 'text-ink hover:bg-ink/5 dark:text-ink-dark dark:hover:bg-white/10'
+                    ? 'bg-gold-300/30 text-ink font-semibold ring-1 ring-gold-400/30 dark:bg-gold-400/15 dark:text-ink-dark dark:ring-0'
+                    : 'text-ink hover:bg-maroon-50 dark:text-ink-dark dark:hover:bg-white/10'
               }`}
             >
               {dayNum}
