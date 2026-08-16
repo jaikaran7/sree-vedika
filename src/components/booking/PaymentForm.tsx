@@ -25,7 +25,12 @@ export function PaymentForm({ pending, defaultValues, submitLabel, onSubmit }: P
     formState: { errors },
   } = useForm<PaymentFormValues>({
     resolver: zodResolver(paymentSchema),
-    defaultValues: { payment_type: 'other', payment_date: todayISO(), ...defaultValues },
+    defaultValues: {
+      payment_type: 'other',
+      payment_method: 'cash',
+      payment_date: todayISO(),
+      ...defaultValues,
+    },
   });
 
   const run = async (values: PaymentFormValues) => {
@@ -35,6 +40,7 @@ export function PaymentForm({ pending, defaultValues, submitLabel, onSubmit }: P
       await onSubmit({
         amount: Number(values.amount),
         payment_type: values.payment_type,
+        payment_method: values.payment_method,
         payment_date: values.payment_date,
         notes: values.notes,
       });
@@ -68,6 +74,10 @@ export function PaymentForm({ pending, defaultValues, submitLabel, onSubmit }: P
           <option value="final_payment">Final Payment</option>
           <option value="adjustment">Adjustment</option>
           <option value="other">Other</option>
+        </SelectInput>
+        <SelectInput label="Cash or Online" error={errors.payment_method?.message} {...register('payment_method')}>
+          <option value="cash">Cash</option>
+          <option value="online">Online</option>
         </SelectInput>
         <TextInput
           label="Collection Date"

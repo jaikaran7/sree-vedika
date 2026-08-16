@@ -46,6 +46,7 @@ export function BookingForm({ prefill, fromInquiryId }: BookingFormProps) {
       budget: 0,
       advance: 0,
       payment_date: todayISO(),
+      payment_method: 'cash',
       ...prefill,
     },
   });
@@ -84,6 +85,7 @@ export function BookingForm({ prefill, fromInquiryId }: BookingFormProps) {
         royalty_fee: Number(values.royalty_fee ?? 0),
         advance: Number(values.advance ?? 0),
         payment_date: values.payment_date,
+        payment_method: values.payment_method,
       });
 
       if (result.ok) {
@@ -215,6 +217,10 @@ export function BookingForm({ prefill, fromInquiryId }: BookingFormProps) {
             error={errors.payment_date?.message}
             {...register('payment_date')}
           />
+          <SelectInput label="Cash or Online" error={errors.payment_method?.message} {...register('payment_method')}>
+            <option value="cash">Cash</option>
+            <option value="online">Online</option>
+          </SelectInput>
           <FinancialSummary
             hallAmount={budget}
             kitchenAmount={kitchenAmount}

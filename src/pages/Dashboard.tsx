@@ -146,7 +146,32 @@ export default function Dashboard() {
               <StatCard label="Pending" value={formatCurrency(bookingStats.totalPending)} accent="maroon" />
             </div>
             <div className="mt-3">
-              <StatCard label="Total Collected" value={formatCurrency(bookingStats.totalCollected)} accent="gold" />
+              <div className="surface-card rounded-2xl border-l-[3px] border-l-gold-500 p-4 dark:border-line-dark dark:bg-surface-dark">
+                <p className="text-[11px] font-semibold uppercase tracking-wide text-ink-soft dark:text-ink-dark-soft/70">
+                  Total Collected
+                </p>
+                <p className="mt-1.5 font-display text-2xl font-semibold leading-tight text-gold-600 dark:text-gold-300">
+                  {formatCurrency(bookingStats.totalCollected)}
+                </p>
+                <div className="mt-3 grid grid-cols-2 gap-3 border-t border-line pt-3 dark:border-line-dark">
+                  <div>
+                    <p className="text-[11px] font-semibold uppercase tracking-wide text-ink-soft dark:text-ink-dark-soft/70">
+                      Cash
+                    </p>
+                    <p className="mt-1 font-display text-lg font-semibold text-ink dark:text-ink-dark">
+                      {formatCurrency(bookingStats.totalCash)}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-[11px] font-semibold uppercase tracking-wide text-ink-soft dark:text-ink-dark-soft/70">
+                      Online
+                    </p>
+                    <p className="mt-1 font-display text-lg font-semibold text-ink dark:text-ink-dark">
+                      {formatCurrency(bookingStats.totalOnline)}
+                    </p>
+                  </div>
+                </div>
+              </div>
             </div>
 
             <div className="mt-6">

@@ -63,6 +63,7 @@ create table if not exists payments (
   ),
   notes text,
   payment_date date not null default current_date,
+  payment_method text not null default 'cash' check (payment_method in ('cash', 'online')),
   created_at timestamptz not null default now()
 );
 

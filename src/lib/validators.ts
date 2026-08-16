@@ -23,6 +23,7 @@ export const bookingSchema = z
     budget: z.coerce.number().min(0, 'Hall booking amount cannot be negative'),
     advance: z.coerce.number().min(0, 'Advance cannot be negative').default(0),
     payment_date: z.string().optional(),
+    payment_method: z.enum(['cash', 'online']).default('cash'),
   })
   .superRefine((data, ctx) => {
     if (data.kitchen_required === 'yes' && data.kitchen_amount <= 0) {
@@ -59,6 +60,14 @@ export const bookingSchema = z
       });
     }
 
+    if (data.advance > 0 && !data.payment_method) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'Select cash or online',
+        path: ['payment_method'],
+      });
+    }
+
     const total = calcTotalBookingValue({
       budget: data.budget,
       kitchen_required: data.kitchen_required === 'yes',
@@ -82,6 +91,7 @@ export type BookingFormValues = z.input<typeof bookingSchema>;
 export const paymentSchema = z.object({
   amount: z.coerce.number().positive('Amount must be greater than 0'),
   payment_type: z.enum(['advance', 'second_payment', 'final_payment', 'adjustment', 'other']),
+  payment_method: z.enum(['cash', 'online']),
   payment_date: z.string().min(1, 'Pick the payment collection date'),
   notes: z.string().trim().optional(),
 });

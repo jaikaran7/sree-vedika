@@ -1,5 +1,5 @@
 import { getSupabase } from '../supabase';
-import type { Payment, PaymentType } from '../types';
+import type { Payment, PaymentMethod, PaymentType } from '../types';
 
 export async function fetchPaymentsByBooking(bookingId: string): Promise<Payment[]> {
   const { data, error } = await getSupabase()
@@ -17,6 +17,7 @@ export type CreatePaymentInput = {
   booking_id: string;
   amount: number;
   payment_type: PaymentType;
+  payment_method: PaymentMethod;
   notes?: string;
   payment_date?: string;
 };
@@ -28,6 +29,7 @@ export async function createPayment(input: CreatePaymentInput): Promise<Payment>
       booking_id: input.booking_id,
       amount: input.amount,
       payment_type: input.payment_type,
+      payment_method: input.payment_method,
       notes: input.notes || null,
       payment_date: input.payment_date,
     })
@@ -42,6 +44,7 @@ export async function createPayment(input: CreatePaymentInput): Promise<Payment>
 export type UpdatePaymentInput = {
   amount: number;
   payment_type: PaymentType;
+  payment_method: PaymentMethod;
   notes?: string;
   payment_date: string;
 };
@@ -52,6 +55,7 @@ export async function updatePayment(paymentId: string, input: UpdatePaymentInput
     .update({
       amount: input.amount,
       payment_type: input.payment_type,
+      payment_method: input.payment_method,
       notes: input.notes || null,
       payment_date: input.payment_date,
     })

@@ -1,45 +1,69 @@
 import { getSupabase } from '../supabase';
 import { calcTotalBookingValue, getEffectiveTotalBookingValue, calcPending } from '../bookingTotals';
 import { isUniqueViolation } from './errors';
-import type { Booking, BookingSlot, BookingWithTotals, DecorationType } from '../types';
+import type { Booking, BookingSlot, BookingWithTotals, DecorationType, PaymentMethod } from '../types';
 
-function withTotals(booking: Booking, collected: number): BookingWithTotals {
+function withTotals(
+  booking: Booking,
+  collected: number,
+  collectedCash: number,
+  collectedOnline: number,
+): BookingWithTotals {
   const total = getEffectiveTotalBookingValue(booking);
-  return { ...booking, collected, pending: calcPending(total, collected) };
+  return {
+    ...booking,
+    collected,
+    collectedCash,
+    collectedOnline,
+    pending: calcPending(total, collected),
+  };
 }
 
 export async function fetchAllBookingsWithTotals(): Promise<BookingWithTotals[]> {
   const [{ data: bookings, error: bookingsError }, { data: payments, error: paymentsError }] = await Promise.all([
     getSupabase().from('bookings').select('*').order('booking_date', { ascending: true }),
-    getSupabase().from('payments').select('booking_id, amount'),
+    getSupabase().from('payments').select('booking_id, amount, payment_method'),
   ]);
 
   if (bookingsError) throw bookingsError;
   if (paymentsError) throw paymentsError;
 
-  const collectedByBooking = new Map<string, number>();
+  const totalsByBooking = new Map<string, { collected: number; cash: number; online: number }>();
   for (const p of payments ?? []) {
-    collectedByBooking.set(p.booking_id, (collectedByBooking.get(p.booking_id) ?? 0) + Number(p.amount));
+    const cur = totalsByBooking.get(p.booking_id) ?? { collected: 0, cash: 0, online: 0 };
+    const amount = Number(p.amount);
+    cur.collected += amount;
+    if (p.payment_method === 'online') cur.online += amount;
+    else cur.cash += amount;
+    totalsByBooking.set(p.booking_id, cur);
   }
 
   return (bookings ?? []).map((b) => {
-    const collected = collectedByBooking.get(b.id) ?? 0;
-    return withTotals(b as Booking, collected);
+    const t = totalsByBooking.get(b.id) ?? { collected: 0, cash: 0, online: 0 };
+    return withTotals(b as Booking, t.collected, t.cash, t.online);
   });
 }
 
 export async function fetchBookingWithTotals(id: string): Promise<BookingWithTotals | null> {
   const [{ data: booking, error: bookingError }, { data: payments, error: paymentsError }] = await Promise.all([
     getSupabase().from('bookings').select('*').eq('id', id).maybeSingle(),
-    getSupabase().from('payments').select('amount').eq('booking_id', id),
+    getSupabase().from('payments').select('amount, payment_method').eq('booking_id', id),
   ]);
 
   if (bookingError) throw bookingError;
   if (paymentsError) throw paymentsError;
   if (!booking) return null;
 
-  const collected = (payments ?? []).reduce((sum, p) => sum + Number(p.amount), 0);
-  return withTotals(booking as Booking, collected);
+  let collected = 0;
+  let collectedCash = 0;
+  let collectedOnline = 0;
+  for (const p of payments ?? []) {
+    const amount = Number(p.amount);
+    collected += amount;
+    if (p.payment_method === 'online') collectedOnline += amount;
+    else collectedCash += amount;
+  }
+  return withTotals(booking as Booking, collected, collectedCash, collectedOnline);
 }
 
 export async function checkSlotAvailability(
@@ -75,6 +99,7 @@ export type CreateBookingInput = {
   royalty_fee: number;
   advance: number;
   payment_date?: string;
+  payment_method?: PaymentMethod;
 };
 
 export type CreateBookingResult =
@@ -118,6 +143,7 @@ export async function createBooking(input: CreateBookingInput): Promise<CreateBo
       payment_type: 'advance',
       notes: null,
       payment_date: input.payment_date,
+      payment_method: input.payment_method ?? 'cash',
     });
     if (paymentError) return { ok: false, reason: 'error', message: paymentError.message };
   }

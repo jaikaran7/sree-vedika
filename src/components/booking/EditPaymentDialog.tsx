@@ -21,6 +21,7 @@ export function EditPaymentDialog({ payment, pendingBeforeThisPayment, onClose, 
         defaultValues={{
           amount: payment.amount,
           payment_type: payment.payment_type,
+          payment_method: payment.payment_method ?? 'cash',
           payment_date: payment.payment_date,
           notes: payment.notes ?? '',
         }}

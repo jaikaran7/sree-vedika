@@ -8,6 +8,8 @@ export type BookingDisplayStatus = 'upcoming' | 'today' | 'completed' | 'cancell
 
 export type PaymentType = 'advance' | 'second_payment' | 'final_payment' | 'adjustment' | 'other';
 
+export type PaymentMethod = 'cash' | 'online';
+
 export interface Booking {
   id: string;
   customer_name: string;
@@ -32,6 +34,7 @@ export interface Payment {
   booking_id: string;
   amount: number;
   payment_type: PaymentType;
+  payment_method: PaymentMethod;
   notes: string | null;
   payment_date: string;
   created_at: string;
@@ -60,6 +63,8 @@ export interface Quotation {
 
 export interface BookingWithTotals extends Booking {
   collected: number;
+  collectedCash: number;
+  collectedOnline: number;
   pending: number;
 }
 
@@ -69,6 +74,11 @@ export const PAYMENT_TYPE_LABELS: Record<PaymentType, string> = {
   final_payment: 'Final Payment',
   adjustment: 'Adjustment',
   other: 'Other',
+};
+
+export const PAYMENT_METHOD_LABELS: Record<PaymentMethod, string> = {
+  cash: 'Cash',
+  online: 'Online',
 };
 
 export const DECORATION_TYPE_LABELS: Record<DecorationType, string> = {
