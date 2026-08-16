@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { formatCurrency, formatDate } from '../../lib/format';
 import { PAYMENT_TYPE_LABELS } from '../../lib/types';
 import type { Payment } from '../../lib/types';
+import type { UpdatePaymentInput } from '../../lib/api';
 import { EditPaymentDialog } from './EditPaymentDialog';
 
 export function PaymentHistory({
@@ -11,7 +12,7 @@ export function PaymentHistory({
 }: {
   payments: Payment[];
   pending: number;
-  onEdit: (id: string, input: { amount: number; payment_type: Payment['payment_type']; notes?: string }) => Promise<void>;
+  onEdit: (id: string, input: UpdatePaymentInput) => Promise<void>;
 }) {
   const [editing, setEditing] = useState<Payment | null>(null);
 

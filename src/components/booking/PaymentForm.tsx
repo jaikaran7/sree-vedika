@@ -5,14 +5,14 @@ import { paymentSchema, type PaymentFormValues } from '../../lib/validators';
 import { TextInput, SelectInput, TextArea } from '../ui/Field';
 import { Button } from '../ui/Button';
 import { ConfirmDialog } from './ConfirmDialog';
-import { formatCurrency } from '../../lib/format';
-import type { PaymentType } from '../../lib/types';
+import { formatCurrency, todayISO } from '../../lib/format';
+import type { UpdatePaymentInput } from '../../lib/api';
 
 interface PaymentFormProps {
   pending: number;
   defaultValues?: Partial<PaymentFormValues>;
   submitLabel: string;
-  onSubmit: (values: { amount: number; payment_type: PaymentType; notes?: string }) => Promise<void>;
+  onSubmit: (values: UpdatePaymentInput) => Promise<void>;
 }
 
 export function PaymentForm({ pending, defaultValues, submitLabel, onSubmit }: PaymentFormProps) {
@@ -25,7 +25,7 @@ export function PaymentForm({ pending, defaultValues, submitLabel, onSubmit }: P
     formState: { errors },
   } = useForm<PaymentFormValues>({
     resolver: zodResolver(paymentSchema),
-    defaultValues: { payment_type: 'other', ...defaultValues },
+    defaultValues: { payment_type: 'other', payment_date: todayISO(), ...defaultValues },
   });
 
   const run = async (values: PaymentFormValues) => {
@@ -35,6 +35,7 @@ export function PaymentForm({ pending, defaultValues, submitLabel, onSubmit }: P
       await onSubmit({
         amount: Number(values.amount),
         payment_type: values.payment_type,
+        payment_date: values.payment_date,
         notes: values.notes,
       });
     } finally {
@@ -68,6 +69,12 @@ export function PaymentForm({ pending, defaultValues, submitLabel, onSubmit }: P
           <option value="adjustment">Adjustment</option>
           <option value="other">Other</option>
         </SelectInput>
+        <TextInput
+          label="Collection Date"
+          type="date"
+          error={errors.payment_date?.message}
+          {...register('payment_date')}
+        />
         <TextArea label="Notes (optional)" placeholder="Optional note" {...register('notes')} />
         <Button type="submit" size="lg" className="w-full" disabled={saving}>
           {submitLabel}

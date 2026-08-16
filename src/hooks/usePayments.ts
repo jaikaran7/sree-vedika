@@ -4,8 +4,9 @@ import {
   fetchPaymentsByBooking,
   toErrorMessage,
   updatePayment as updatePaymentApi,
+  type UpdatePaymentInput,
 } from '../lib/api';
-import type { Payment, PaymentType } from '../lib/types';
+import type { Payment } from '../lib/types';
 
 export function usePayments(bookingId: string | undefined) {
   const [payments, setPayments] = useState<Payment[]>([]);
@@ -33,7 +34,7 @@ export function usePayments(bookingId: string | undefined) {
   }, [refetch]);
 
   const addPayment = useCallback(
-    async (input: { amount: number; payment_type: PaymentType; notes?: string }) => {
+    async (input: UpdatePaymentInput) => {
       if (!bookingId) return;
       await createPaymentApi({ booking_id: bookingId, ...input });
       await refetch();
@@ -42,7 +43,7 @@ export function usePayments(bookingId: string | undefined) {
   );
 
   const editPayment = useCallback(
-    async (paymentId: string, input: { amount: number; payment_type: PaymentType; notes?: string }) => {
+    async (paymentId: string, input: UpdatePaymentInput) => {
       await updatePaymentApi(paymentId, input);
       await refetch();
     },

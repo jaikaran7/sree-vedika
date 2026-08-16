@@ -43,12 +43,18 @@ export type UpdatePaymentInput = {
   amount: number;
   payment_type: PaymentType;
   notes?: string;
+  payment_date: string;
 };
 
 export async function updatePayment(paymentId: string, input: UpdatePaymentInput): Promise<Payment> {
   const { data, error } = await getSupabase()
     .from('payments')
-    .update({ amount: input.amount, payment_type: input.payment_type, notes: input.notes || null })
+    .update({
+      amount: input.amount,
+      payment_type: input.payment_type,
+      notes: input.notes || null,
+      payment_date: input.payment_date,
+    })
     .eq('id', paymentId)
     .select()
     .single();

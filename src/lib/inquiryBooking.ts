@@ -35,6 +35,6 @@ export function inquiryToBookingPrefill(inquiry: Inquiry): Partial<BookingFormVa
     kitchen_amount: 0,
     decoration_amount: 0,
     royalty_fee: 0,
-    decorator_vendor: '',
+    decorator_vendor: decoration_type === 'in_house' ? 'Raju' : '',
   };
 }

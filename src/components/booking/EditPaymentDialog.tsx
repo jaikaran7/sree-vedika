@@ -1,12 +1,13 @@
 import { Modal } from '../ui/Modal';
 import { PaymentForm } from './PaymentForm';
-import type { Payment, PaymentType } from '../../lib/types';
+import type { UpdatePaymentInput } from '../../lib/api';
+import type { Payment } from '../../lib/types';
 
 interface EditPaymentDialogProps {
   payment: Payment | null;
   pendingBeforeThisPayment: number;
   onClose: () => void;
-  onSave: (input: { amount: number; payment_type: PaymentType; notes?: string }) => Promise<void>;
+  onSave: (input: UpdatePaymentInput) => Promise<void>;
 }
 
 export function EditPaymentDialog({ payment, pendingBeforeThisPayment, onClose, onSave }: EditPaymentDialogProps) {
@@ -17,7 +18,12 @@ export function EditPaymentDialog({ payment, pendingBeforeThisPayment, onClose, 
         key={payment.id}
         pending={pendingBeforeThisPayment}
         submitLabel="Update Payment"
-        defaultValues={{ amount: payment.amount, payment_type: payment.payment_type, notes: payment.notes ?? '' }}
+        defaultValues={{
+          amount: payment.amount,
+          payment_type: payment.payment_type,
+          payment_date: payment.payment_date,
+          notes: payment.notes ?? '',
+        }}
         onSubmit={onSave}
       />
     </Modal>

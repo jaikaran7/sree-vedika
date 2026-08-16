@@ -22,6 +22,7 @@ export const bookingSchema = z
     royalty_fee: z.coerce.number().min(0, 'Royalty fee cannot be negative').default(0),
     budget: z.coerce.number().min(0, 'Hall booking amount cannot be negative'),
     advance: z.coerce.number().min(0, 'Advance cannot be negative').default(0),
+    payment_date: z.string().optional(),
   })
   .superRefine((data, ctx) => {
     if (data.kitchen_required === 'yes' && data.kitchen_amount <= 0) {
@@ -48,13 +49,14 @@ export const bookingSchema = z
           path: ['decorator_vendor'],
         });
       }
-      if (data.decoration_amount <= 0) {
-        ctx.addIssue({
-          code: z.ZodIssueCode.custom,
-          message: 'Enter the decoration amount',
-          path: ['decoration_amount'],
-        });
-      }
+    }
+
+    if (data.advance > 0 && !data.payment_date) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'Pick the payment collection date',
+        path: ['payment_date'],
+      });
     }
 
     const total = calcTotalBookingValue({
@@ -80,6 +82,7 @@ export type BookingFormValues = z.input<typeof bookingSchema>;
 export const paymentSchema = z.object({
   amount: z.coerce.number().positive('Amount must be greater than 0'),
   payment_type: z.enum(['advance', 'second_payment', 'final_payment', 'adjustment', 'other']),
+  payment_date: z.string().min(1, 'Pick the payment collection date'),
   notes: z.string().trim().optional(),
 });
 

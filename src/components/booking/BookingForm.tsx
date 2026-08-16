@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useNavigate } from 'react-router-dom';
@@ -30,6 +30,7 @@ export function BookingForm({ prefill, fromInquiryId }: BookingFormProps) {
     handleSubmit,
     watch,
     setError,
+    setValue,
     formState: { errors },
   } = useForm<BookingFormValues>({
     resolver: zodResolver(bookingSchema),
@@ -44,17 +45,26 @@ export function BookingForm({ prefill, fromInquiryId }: BookingFormProps) {
       royalty_fee: 0,
       budget: 0,
       advance: 0,
+      payment_date: todayISO(),
       ...prefill,
     },
   });
 
   const kitchenRequired = watch('kitchen_required');
   const decorationType = watch('decoration_type');
+  const decoratorVendor = watch('decorator_vendor');
   const budget = Number(watch('budget')) || 0;
   const kitchenAmount = kitchenRequired === 'yes' ? Number(watch('kitchen_amount')) || 0 : 0;
   const decorationAmount = decorationType === 'in_house' ? Number(watch('decoration_amount')) || 0 : 0;
   const royaltyFee = decorationType === 'outside' ? Number(watch('royalty_fee')) || 0 : 0;
   const advance = Number(watch('advance')) || 0;
+
+  // ponytail: default in-house vendor once when empty; user can edit freely after
+  useEffect(() => {
+    if (decorationType === 'in_house' && !decoratorVendor?.trim()) {
+      setValue('decorator_vendor', 'Raju');
+    }
+  }, [decorationType, decoratorVendor, setValue]);
 
   const doSubmit = async (values: BookingFormValues) => {
     setSubmitting(true);
@@ -73,6 +83,7 @@ export function BookingForm({ prefill, fromInquiryId }: BookingFormProps) {
         decoration_amount: Number(values.decoration_amount ?? 0),
         royalty_fee: Number(values.royalty_fee ?? 0),
         advance: Number(values.advance ?? 0),
+        payment_date: values.payment_date,
       });
 
       if (result.ok) {
@@ -164,12 +175,12 @@ export function BookingForm({ prefill, fromInquiryId }: BookingFormProps) {
             <>
               <TextInput
                 label="Decorator Vendor Name"
-                placeholder="e.g. Royal Decorators"
+                placeholder="Raju"
                 error={errors.decorator_vendor?.message}
                 {...register('decorator_vendor')}
               />
               <TextInput
-                label="Decoration Amount (₹)"
+                label="Decoration Amount (₹, optional)"
                 type="number"
                 inputMode="decimal"
                 min={0}
@@ -197,6 +208,12 @@ export function BookingForm({ prefill, fromInquiryId }: BookingFormProps) {
             min={0}
             error={errors.advance?.message}
             {...register('advance')}
+          />
+          <TextInput
+            label="Payment Collection Date"
+            type="date"
+            error={errors.payment_date?.message}
+            {...register('payment_date')}
           />
           <FinancialSummary
             hallAmount={budget}

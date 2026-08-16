@@ -1,12 +1,12 @@
 import { Modal } from '../ui/Modal';
 import { PaymentForm } from './PaymentForm';
-import type { PaymentType } from '../../lib/types';
+import type { UpdatePaymentInput } from '../../lib/api';
 
 interface AddPaymentDialogProps {
   open: boolean;
   pending: number;
   onClose: () => void;
-  onSave: (input: { amount: number; payment_type: PaymentType; notes?: string }) => Promise<void>;
+  onSave: (input: UpdatePaymentInput) => Promise<void>;
 }
 
 export function AddPaymentDialog({ open, pending, onClose, onSave }: AddPaymentDialogProps) {

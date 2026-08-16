@@ -74,6 +74,7 @@ export type CreateBookingInput = {
   decoration_amount: number;
   royalty_fee: number;
   advance: number;
+  payment_date?: string;
 };
 
 export type CreateBookingResult =
@@ -116,6 +117,7 @@ export async function createBooking(input: CreateBookingInput): Promise<CreateBo
       amount: input.advance,
       payment_type: 'advance',
       notes: null,
+      payment_date: input.payment_date,
     });
     if (paymentError) return { ok: false, reason: 'error', message: paymentError.message };
   }
